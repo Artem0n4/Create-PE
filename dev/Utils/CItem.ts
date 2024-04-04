@@ -16,7 +16,7 @@ class CItem {
     IDRegistry.genItemID(obj.id);
     Item.createItem(
       obj.id,
-      obj.name || obj.id,
+      "item.create." + (obj.name || obj.id),
       {
         name: texture,
         meta: 0,

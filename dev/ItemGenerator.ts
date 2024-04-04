@@ -4,7 +4,6 @@
         const id = String(texture[i]).split("/").pop().split(".")[0];
       new CItem({
         id,
-        name: "item." + id + ".create"
       });
     };
   })();
