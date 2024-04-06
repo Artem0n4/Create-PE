@@ -1,7 +1,7 @@
 const SHAFT = new CBlock("shaft", [{
     name: "block.create.shaft",
     texture: [
-        ["unknown", 0],
+        ["unknown", 0],    ["unknown", 0],    ["unknown", 0],    ["unknown", 0],    ["unknown", 0],    ["unknown", 0],
     ],
     inCreative: true,
 },
@@ -14,7 +14,7 @@ SHAFT.setItemModel("item/shaft", "models/item/shaft", {
 
 Callback.addCallback("ItemUse", (coords, item, block, itExternal, player) => {
     Game.message(""+BlockSource.getDefaultForActor(player).getBlockData(coords.x, coords.y, coords.z));
-    Game.message(""+block.data)
+
 }) 
 
 class Shaft extends ShaftBase {

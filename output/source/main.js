@@ -999,7 +999,6 @@ var EShaftRotation;
     EShaftRotation[EShaftRotation["XY"] = Math.PI / 2] = "XY";
     EShaftRotation[EShaftRotation["Z"] = 0] = "Z";
 })(EShaftRotation || (EShaftRotation = {}));
-;
 var EShaftSide;
 (function (EShaftSide) {
     EShaftSide[EShaftSide["FIRST"] = 0] = "FIRST";
@@ -1007,88 +1006,157 @@ var EShaftSide;
     EShaftSide[EShaftSide["THIRD"] = 2] = "THIRD";
     EShaftSide[EShaftSide["FOURTH"] = 3] = "FOURTH";
 })(EShaftSide || (EShaftSide = {}));
-;
 var ShaftBase = /** @class */ (function (_super) {
     __extends(ShaftBase, _super);
     function ShaftBase() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.defaultValues = {
-            rotation: EShaftRotation,
+            placed: "side",
             HF: 0,
         };
         return _this;
     }
-    ShaftBase.formingRender = function (rx, ry, rz) {
+    ShaftBase.formingRender = function (rx, ry, rz, y) {
         if (rx === void 0) { rx = Math.PI / 2; }
         if (ry === void 0) { ry = 0; }
         if (rz === void 0) { rz = 0; }
+        if (y === void 0) { y = 0.5; }
         var mesh = new RenderMesh();
         mesh.importFromFile(models_dir + "block/shaft" + ".obj", "obj", {
-            translate: [0.5, 0.5, 0.5],
             scale: null,
             invertV: false,
             noRebuild: false,
         });
         mesh.rotate(rx, ry, rz);
-        this["rotation"] = ObjectValues(arguments);
         return mesh;
     };
     ShaftBase.prototype.formingRenderBySides = function (player) {
         if (Entity.getSneaking(player) === true) {
-            return ShaftBase.formingRender(0);
+            this.data.placed = "up";
+            return ShaftBase.formingRender(0, 0, 0, 0);
         }
         var render;
         switch (this.blockSource.getBlockData(this.x, this.y, this.z)) {
             case EShaftSide.FIRST:
                 render = ShaftBase.formingRender();
                 break;
-            case EShaftSide.SECOND:
+            case EShaftSide.SECOND: //SECOND
                 render = ShaftBase.formingRender(EShaftRotation.X, EShaftRotation.XY);
                 break;
-            case EShaftSide.THIRD:
+            case EShaftSide.THIRD: //THIRD
                 render = ShaftBase.formingRender();
                 break;
             case EShaftSide.FOURTH:
                 render = ShaftBase.formingRender(EShaftRotation.X, EShaftRotation.XY);
                 break;
+            default: ShaftBase.formingRender(EShaftRotation.X);
         }
-        ;
         return render;
     };
     ShaftBase.prototype.init = function () {
-        var animation = (this["animation"] = new Animation.Base(this.x, this.y, this.z));
+        var animation = (this.data.animation = new Animation.Base(this.x + 0.5, this.y + 0.5, this.z + 0.5));
         var mesh = this.formingRenderBySides(Player.getLocal()); //?
         animation.describe({ mesh: mesh, skin: "models/block/shaft.png" });
         animation.load();
     };
-    ;
     ShaftBase.defineValue = function (player) { };
     ShaftBase.prototype.rotate = function (animation) {
         var rotation = this.validateRotation();
         animation.load();
-        animation.transform().rotate(rotation[0], rotation[1], rotation[2]);
+        if (this.data.placed === "up")
+            return animation.transform().rotate(0, 0.01, 0);
+        animation.transform().rotate(rotation.x, rotation.y, rotation.z);
         animation.refresh();
     };
-    ;
     ShaftBase.prototype.validateRotation = function () {
-        var rotation = this["rotation"];
-        var z = rotation[0] > 0 && rotation[1] === 0 ? 0.01 : 0;
-        var y = rotation[0] > 0 && rotation[1] > 0 ? 0.01 : 0;
-        return [0, y, z];
+        var coords = {};
+        switch (this.blockSource.getBlockData(this.x, this.y, this.z)) {
+            case EShaftSide.FIRST:
+                coords = { x: 0, y: 0, z: 0.01 };
+                break;
+            case EShaftSide.FOURTH:
+                coords = { x: 0.01, y: 0, z: 0 };
+                break;
+            case EShaftSide.SECOND:
+                coords = { x: 0., y: 0, z: 0.01 };
+                break;
+            case EShaftSide.THIRD:
+                coords = { x: 0., y: 0, z: 0.01 };
+                break;
+        }
+        ;
+        return coords;
     };
-    ;
     ShaftBase.prototype.onTick = function () {
-        if (!this["animation"])
+        if (!this.data.animation)
             return;
         // if(this.data.HF > 0)
-        this.rotate(this["animation"]);
+        this.rotate(this.data.animation);
+    };
+    ShaftBase.prototype.destroy = function () {
+        this.data.animation.destroy();
+        return false;
+    };
+    ;
+    ShaftBase.prototype.validateShafts = function (x, y, z) {
+        return this.blockSource.getBlockId(x, y, z) === BlockID["shaft"] &&
+            this.blockSource.getBlockData(x, y, z) === this.blockSource.getBlockData(this.x, this.y, this.z);
+    };
+    ;
+    ShaftBase.prototype.restart = function (x, y, z) {
+        var tile = TileEntity.getTileEntity(x, y, z);
+        tile.data.animation.destroy();
+        tile.data.animation.load();
+    };
+    ;
+    ShaftBase.prototype.restartAnimationByShaft = function (x, y, z) {
+        var tile = TileEntity.getTileEntity(x, y, z, this.blockSource);
+        var i = 1;
+        while (tile.validateShafts(tile.x + i, tile.y, tile.z)) {
+            i++;
+            tile.restart(tile.x + i, tile.y, tile.z);
+        }
+        ;
+        while (tile.validateShafts(tile.x - i, tile.y, tile.z)) {
+            i++;
+            tile.restart(tile.x - i, tile.y, tile.z);
+        }
+        ;
+        while (tile.validateShafts(tile.x, tile.y, tile.z + i)) {
+            i++;
+            tile.restart(tile.x, tile.y, tile.z + i);
+        }
+        ;
+        while (tile.validateShafts(tile.x, tile.y, tile.z - i)) {
+            i++;
+            tile.restart(tile.x, tile.y, tile.z - i);
+        }
+        ;
+    };
+    ;
+    ShaftBase.prototype.onItemUse = function (coords, item, player) {
+        if (Entity.getSneaking(player) === true) {
+            this.restart(this.x, this.y, this.z);
+            return (this.restartAnimationByShaft(this.x, this.y, this.z));
+        }
+        ;
+        var animation = this.data.animation;
+        animation.destroy();
+        var data = this.blockSource.getBlockData(this.x, this.y, this.z);
+        this.blockSource.setBlock(this.x, this.y, this.z, this.blockID, data < 3 ? data + 1 : data - 1);
+        TileEntity.addTileEntity(this.x, this.y, this.z, this.blockSource);
+        animation.load();
+        var mesh = this.formingRenderBySides(Player.getLocal()); //?
+        animation.describe({ mesh: mesh, skin: "models/block/shaft.png" });
+        animation.load();
+        return false;
     };
     return ShaftBase;
 }(TileEntityBase));
 var SHAFT = new CBlock("shaft", [{
         name: "block.create.shaft",
         texture: [
-            ["unknown", 0],
+            ["unknown", 0], ["unknown", 0], ["unknown", 0], ["unknown", 0], ["unknown", 0], ["unknown", 0],
         ],
         inCreative: true,
     },
@@ -1098,7 +1166,6 @@ SHAFT.setItemModel("item/shaft", "models/item/shaft", {
 });
 Callback.addCallback("ItemUse", function (coords, item, block, itExternal, player) {
     Game.message("" + BlockSource.getDefaultForActor(player).getBlockData(coords.x, coords.y, coords.z));
-    Game.message("" + block.data);
 });
 var Shaft = /** @class */ (function (_super) {
     __extends(Shaft, _super);
