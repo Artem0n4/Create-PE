@@ -130,7 +130,7 @@ abstract class ShaftBase extends TileEntityBase {
 
   public restart(x, y, z) {
     const tile = TileEntity.getTileEntity(x, y, z);
-    if (tile && tile.data.animation) {
+    if (tile && tile.data && tile.data.animation) {
       tile.data.animation.destroy();
       tile.data.animation.load();
     }
