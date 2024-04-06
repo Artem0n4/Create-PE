@@ -835,7 +835,9 @@ IMPORT("BlockEngine");
 IMPORT("SoundAPI");
 IMPORT("StorageInterface");
 /**
- *  __ dir __ + "resources/assets/models/"
+ *   __ dir __ + "resources/assets/models/";
+ * @block __block__/name — for __block__ model;
+ * @item __item__/name — for __item__ model;
  */
 var models_dir = __dir__ + "resources/assets/models/";
 var MathHelper = {
@@ -849,11 +851,13 @@ var MathHelper = {
     },
     radian: function (gradus) {
         return gradus * Math.PI / 180;
-    }
+    },
 };
-var EShaftRotation;
-(function (EShaftRotation) {
-})(EShaftRotation || (EShaftRotation = {}));
+var ObjectValues = function (obj) {
+    return Object.keys(obj).map(function (v) {
+        return obj[v];
+    });
+};
 var CItem = /** @class */ (function () {
     function CItem(obj) {
         var _a;
@@ -986,35 +990,111 @@ var LiquidFactory = /** @class */ (function () {
 }());
 var WATER = new LiquidFactory("water", "water_flow");
 var LAVA = new LiquidFactory("lava", "lava_flow");
+var EShaftRotation;
+(function (EShaftRotation) {
+    EShaftRotation[EShaftRotation["X"] = Math.PI / 2] = "X";
+    /**
+     * must use also using X
+     */
+    EShaftRotation[EShaftRotation["XY"] = Math.PI / 2] = "XY";
+    EShaftRotation[EShaftRotation["Z"] = 0] = "Z";
+})(EShaftRotation || (EShaftRotation = {}));
+;
+var EShaftSide;
+(function (EShaftSide) {
+    EShaftSide[EShaftSide["FIRST"] = 0] = "FIRST";
+    EShaftSide[EShaftSide["SECOND"] = 1] = "SECOND";
+    EShaftSide[EShaftSide["THIRD"] = 2] = "THIRD";
+    EShaftSide[EShaftSide["FOURTH"] = 3] = "FOURTH";
+})(EShaftSide || (EShaftSide = {}));
+;
 var ShaftBase = /** @class */ (function (_super) {
     __extends(ShaftBase, _super);
     function ShaftBase() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.defaultValues = {
             rotation: EShaftRotation,
-            HF: 0
+            HF: 0,
         };
         return _this;
     }
-    ShaftBase.prototype.setupModelByRotation = function () {
+    ShaftBase.formingRender = function (rx, ry, rz) {
+        if (rx === void 0) { rx = Math.PI / 2; }
+        if (ry === void 0) { ry = 0; }
+        if (rz === void 0) { rz = 0; }
+        var mesh = new RenderMesh();
+        mesh.importFromFile(models_dir + "block/shaft" + ".obj", "obj", {
+            translate: [0.5, 0.5, 0.5],
+            scale: null,
+            invertV: false,
+            noRebuild: false,
+        });
+        mesh.rotate(rx, ry, rz);
+        this["rotation"] = ObjectValues(arguments);
+        return mesh;
+    };
+    ShaftBase.prototype.formingRenderBySides = function (player) {
+        if (Entity.getSneaking(player) === true) {
+            return ShaftBase.formingRender(0);
+        }
+        var render;
+        switch (this.blockSource.getBlockData(this.x, this.y, this.z)) {
+            case EShaftSide.FIRST:
+                render = ShaftBase.formingRender();
+                break;
+            case EShaftSide.SECOND:
+                render = ShaftBase.formingRender(EShaftRotation.X, EShaftRotation.XY);
+                break;
+            case EShaftSide.THIRD:
+                render = ShaftBase.formingRender();
+                break;
+            case EShaftSide.FOURTH:
+                render = ShaftBase.formingRender(EShaftRotation.X, EShaftRotation.XY);
+                break;
+        }
+        ;
+        return render;
+    };
+    ShaftBase.prototype.init = function () {
+        var animation = (this["animation"] = new Animation.Base(this.x, this.y, this.z));
+        var mesh = this.formingRenderBySides(Player.getLocal()); //?
+        animation.describe({ mesh: mesh, skin: "models/block/shaft.png" });
+        animation.load();
     };
     ;
-    ShaftBase.prototype.rotate = function (animation, x, y, z) {
+    ShaftBase.defineValue = function (player) { };
+    ShaftBase.prototype.rotate = function (animation) {
+        var rotation = this.validateRotation();
         animation.load();
-        animation.transform().rotate(x, y, z);
+        animation.transform().rotate(rotation[0], rotation[1], rotation[2]);
+        animation.refresh();
+    };
+    ;
+    ShaftBase.prototype.validateRotation = function () {
+        var rotation = this["rotation"];
+        var z = rotation[0] > 0 && rotation[1] === 0 ? 0.01 : 0;
+        var y = rotation[0] > 0 && rotation[1] > 0 ? 0.01 : 0;
+        return [0, y, z];
+    };
+    ;
+    ShaftBase.prototype.onTick = function () {
+        if (!this["animation"])
+            return;
+        // if(this.data.HF > 0)
+        this.rotate(this["animation"]);
     };
     return ShaftBase;
 }(TileEntityBase));
 var SHAFT = new CBlock("shaft", [{
         name: "block.create.shaft",
         texture: [
-            ["shaft_up", 0],
+            ["unknown", 0],
         ],
         inCreative: true,
     },
 ]).createWithRotation();
-SHAFT.setItemModel("block/shaft_up", "models/block/shaft_up", {
-    translate: [0.5, 0, 0.5], scale: [1.1, 1.1, 1.1], invertV: false, noRebuild: false
+SHAFT.setItemModel("item/shaft", "models/item/shaft", {
+    translate: [0.5, 0.5, 0.5], scale: [1.1, 1.1, 1.1], invertV: false, noRebuild: false
 });
 Callback.addCallback("ItemUse", function (coords, item, block, itExternal, player) {
     Game.message("" + BlockSource.getDefaultForActor(player).getBlockData(coords.x, coords.y, coords.z));
@@ -1027,3 +1107,5 @@ var Shaft = /** @class */ (function (_super) {
     }
     return Shaft;
 }(ShaftBase));
+;
+TileEntity.registerPrototype(BlockID["shaft"], new Shaft());

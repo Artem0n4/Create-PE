@@ -7,8 +7,8 @@ const SHAFT = new CBlock("shaft", [{
 },
 ]).createWithRotation();
 
-SHAFT.setItemModel("block/shaft_up", "models/block/shaft_up", {
-    translate: [0.5, 0, 0.5], scale: [1.1, 1.1, 1.1], invertV: false, noRebuild: false 
+SHAFT.setItemModel("item/shaft", "models/item/shaft", {
+    translate: [0.5, 0.5, 0.5], scale: [1.1, 1.1, 1.1], invertV: false, noRebuild: false 
 }); 
 
 
@@ -21,4 +21,6 @@ class Shaft extends ShaftBase {
 
 
     
-}
+};
+
+TileEntity.registerPrototype(BlockID["shaft"], new Shaft())
