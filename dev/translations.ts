@@ -1,4 +1,5 @@
-var RU = {
+
+const RU = {
     "item.create.lapiz_sheet": "Лазуритовый лист",
     "item.create.andesite_alloy": "Андезитовый сплав",
     "item.create.attribute_filter": "Фильтр атрибутов",
@@ -185,6 +186,7 @@ var RU = {
     "item.create.wrench.tooltip.summary": "Многофункциональный инструмент для работы с кинетическими компонентами.",
     "item.create.zinc_ingot": "Цинковый слиток",
     "item.create.zinc_nugget": "Кусочек цинка",
+
     "block.create.acacia_window": "Акациевое окно",
     "block.create.acacia_window_pane": "Акациевая оконная панель",
     "block.create.adjustable_chain_gearshift": "Регулируемая цепная коробка передач",
@@ -240,7 +242,7 @@ var RU = {
     "block.create.cart_assembler": "Сборщик вагонеток",
     "block.create.chocolate": "Шоколад",
     "block.create.chute": "Жёлоб",
-    "item.create.clipboard": "Планшет",
+    "item.create.clipboard": "Планшет", //block.
     "item.create.empty_clipboard": "Пустой планшет",
     "item.create.copper_ingot": "Медный слиток",
     "block.create.clipboard.tooltip.behaviour1": "Открывает _интерфейс_. _ПКМ крадучись_ для размещения на поверхности.",
@@ -762,7 +764,7 @@ var RU = {
     "block.create.toolbox.tooltip.condition2": "Alt слева в диапазоне досягаемости",
     "block.create.toolbox.tooltip.condition3": "ПКМ по блоку",
     "block.create.toolbox.tooltip.summary": "Самый дорогой компаньон каждого изобретателя. Удобно _вмещает_ большое количество _восьми различных_ типов предметов.",
-    "item.create.track": "Железнодорожный путь",
+    "item.create.track": "Железнодорожный путь", //block.
     "block.create.track_observer": "Железнодорожный наблюдатель",
     "block.create.track_signal": "Железнодорожный светофор",
     "block.create.track_station": "Железнодорожная станция",
@@ -826,204 +828,10 @@ var RU = {
     "block.create.zinc_block": "Цинковый блок",
     "block.create.zinc_ore": "Цинковая руда",
 };
-for (var i in RU) {
+
+for(const i in RU) {
     Translation.addTranslation(i, {
         ru: RU[i]
     });
+
 }
-IMPORT("BlockEngine");
-IMPORT("SoundAPI");
-IMPORT("StorageInterface");
-/**
- *  __ dir __ + "resources/assets/models/"
- */
-var models_dir = __dir__ + "resources/assets/models/";
-var MathHelper = {
-    randomValue: function () {
-        var values = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            values[_i] = arguments[_i];
-        }
-        var random = values[Math.floor(Math.random() * values.length)];
-        return random;
-    },
-    radian: function (gradus) {
-        return gradus * Math.PI / 180;
-    }
-};
-var EShaftRotation;
-(function (EShaftRotation) {
-})(EShaftRotation || (EShaftRotation = {}));
-var CItem = /** @class */ (function () {
-    function CItem(obj) {
-        var _a;
-        this.id = obj.id;
-        var texture = ((_a = obj.texture) !== null && _a !== void 0 ? _a : (obj.texture = obj.id));
-        var meta_num = texture[texture.length - 1];
-        IDRegistry.genItemID(obj.id);
-        Item.createItem(obj.id, "item.create." + (obj.name || obj.id), {
-            name: texture,
-            meta: 0,
-        }, {
-            stack: obj.stack || 64,
-        });
-    }
-    CItem.prototype.model = function (model, import_params) {
-        var mesh = new RenderMesh();
-        mesh.importFromFile(models_dir + model + ".obj", "obj", import_params || null);
-        return mesh;
-    };
-    CItem.prototype.setHandModel = function (model_name, texture, import_params) {
-        var model = ItemModel.getForWithFallback(ItemID[this.id], 0);
-        model.setHandModel(this.model(model_name, import_params), texture);
-    };
-    CItem.prototype.setItemModel = function (model_name, texture, import_params) {
-        var model = ItemModel.getForWithFallback(ItemID[this.id], 0);
-        model.setModel(this.model(model, import_params), texture);
-    };
-    CItem.prototype.setInventoryModel = function (model_name, texture, import_params, rotation) {
-        if (rotation === void 0) { rotation = [0, 0, 0]; }
-        var mesh = this.model(model_name, import_params);
-        mesh.rotate(MathHelper.radian(rotation[0]), MathHelper.radian(rotation[1]), MathHelper.radian(rotation[2]));
-        var model = ItemModel.getForWithFallback(ItemID[this.id], 0);
-        model.setUiModel(mesh, texture);
-    };
-    return CItem;
-}());
-var CBlock = /** @class */ (function () {
-    function CBlock(id, data, type) {
-        this.id = id;
-        this.data = data;
-        this.type = type;
-        IDRegistry.genBlockID(id);
-    }
-    ;
-    CBlock.prototype.create = function () {
-        Block.createBlock(this.id, this.data, this.type);
-        return this;
-    };
-    ;
-    CBlock.prototype.setItemModel = function (model, texture, import_params) {
-        var mesh = new RenderMesh();
-        mesh.importFromFile(models_dir + model + ".obj", "obj", import_params || null);
-        ItemModel.getForWithFallback(BlockID[this.id], 0).setModel(mesh, texture).setTexture(texture);
-    };
-    CBlock.prototype.createWithRotation = function () {
-        IDRegistry.genBlockID(this.id);
-        Block.createBlockWithRotation(this.id, this.data, this.type);
-        return this;
-    };
-    ;
-    return CBlock;
-}());
-(function () {
-    var texture = FileTools.GetListOfFiles(__dir__ + "resources/assets/items-opaque/generate/", "png");
-    for (var i in texture) {
-        var id = String(texture[i]).split("/").pop().split(".")[0];
-        new CItem({
-            id: id,
-        });
-    }
-    ;
-})();
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var Wrench = /** @class */ (function (_super) {
-    __extends(Wrench, _super);
-    function Wrench() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return Wrench;
-}(CItem));
-;
-var WRENCH = new CItem({
-    id: "create_wrench", texture: "create_wrench", stack: 1
-});
-WRENCH.setInventoryModel("item/wrench", "models/item/create_wrench", {
-    translate: [0.25, 0, 0.5], scale: [1.50, 1.50, 1.50], invertV: false, noRebuild: false
-}, [0, 0, -45]);
-WRENCH.setHandModel("item/wrench", "models/item/create_wrench", {
-    translate: [0.25, 0, 0], scale: [2.5, 2.5, 2.5], invertV: false, noRebuild: false
-});
-var LiquidFactory = /** @class */ (function () {
-    function LiquidFactory(name, texture) {
-        this.name = name;
-        Game.message("Жидкость прошла инициализацию: " + this.name);
-        LiquidFactory.container.push({ name: name, texture: texture, input: [], output: [] });
-    }
-    LiquidFactory.prototype.registerLiquidItem = function (input, output) {
-        output !== null && output !== void 0 ? output : (output = input + "_empty");
-        LiquidFactory.container[this.name];
-    };
-    LiquidFactory.validateLiquid = function (item, data, entity) {
-        for (var i in LiquidFactory.container) {
-            var liquid = LiquidFactory.container[i];
-            if (item.id === liquid.input[i]) {
-                var actor = new PlayerActor(entity);
-                actor.setInventorySlot(actor.getSelectedSlot(), liquid.output[i], 1, 0, null);
-                data[liquid.name[i]]++;
-                //Debug
-                alert("Liquid item has been replaced");
-                return;
-            }
-        }
-    };
-    LiquidFactory.container = [];
-    return LiquidFactory;
-}());
-var WATER = new LiquidFactory("water", "water_flow");
-var LAVA = new LiquidFactory("lava", "lava_flow");
-var ShaftBase = /** @class */ (function (_super) {
-    __extends(ShaftBase, _super);
-    function ShaftBase() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.defaultValues = {
-            rotation: EShaftRotation,
-            HF: 0
-        };
-        return _this;
-    }
-    ShaftBase.prototype.setupModelByRotation = function () {
-    };
-    ;
-    ShaftBase.prototype.rotate = function (animation, x, y, z) {
-        animation.load();
-        animation.transform().rotate(x, y, z);
-    };
-    return ShaftBase;
-}(TileEntityBase));
-var SHAFT = new CBlock("shaft", [{
-        name: "block.create.shaft",
-        texture: [
-            ["shaft_up", 0],
-        ],
-        inCreative: true,
-    },
-]).createWithRotation();
-SHAFT.setItemModel("block/shaft_up", "models/block/shaft_up", {
-    translate: [0.5, 0, 0.5], scale: [1.1, 1.1, 1.1], invertV: false, noRebuild: false
-});
-Callback.addCallback("ItemUse", function (coords, item, block, itExternal, player) {
-    Game.message("" + BlockSource.getDefaultForActor(player).getBlockData(coords.x, coords.y, coords.z));
-    Game.message("" + block.data);
-});
-var Shaft = /** @class */ (function (_super) {
-    __extends(Shaft, _super);
-    function Shaft() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return Shaft;
-}(ShaftBase));

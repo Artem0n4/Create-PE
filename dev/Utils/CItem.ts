@@ -6,9 +6,9 @@ interface ICItem {
 }
 
 class CItem {
-  public id: int;
+  public id: string;
   constructor(obj: ICItem) {
-    this.id = ItemID[obj.id];
+    this.id = obj.id
 
     const texture = (obj.texture ??= obj.id);
     const meta_num = texture[texture.length - 1];
@@ -26,40 +26,45 @@ class CItem {
       }
     );
   }
-  private model(model, import_params) {
+  protected model(model, import_params) {
     const mesh = new RenderMesh();
     mesh.importFromFile(
-      models_dir + "item/" + model + ".obj",
+      models_dir + model + ".obj",
       "obj",
       import_params || null
     );
     return mesh;
   }
 
-  public setHandModel(model, texture, import_params?) {
-    ItemModel.getForWithFallback(this.id, 0).setHandModel(
-      this.model(model, import_params),
-      texture ?? model
+  public setHandModel(model_name: string, texture: string, import_params?) {
+    const model = ItemModel.getForWithFallback(ItemID[this.id], 0);
+    model.setHandModel(
+      this.model(model_name, import_params),
+      texture
     );
+
   }
-  public setItemModel(model, texture, import_params?) {
-    ItemModel.getForWithFallback(this.id, 0).setModel(
+  public setItemModel(model_name: string, texture: string, import_params?) {
+    const model = ItemModel.getForWithFallback(ItemID[this.id], 0);
+    model.setModel(
       this.model(model, import_params),
-      texture ?? model
+      texture
     );
+
   }
   public setInventoryModel(
-    model: string,
+    model_name: string,
     texture: string,
     import_params?: {},
     rotation: [int, int, int] = [0, 0, 0]
   ) {
-    const mesh = this.model(model, import_params) as RenderMesh;
+    const mesh = this.model(model_name, import_params) as RenderMesh;
     mesh.rotate(
       MathHelper.radian(rotation[0]),
       MathHelper.radian(rotation[1]),
       MathHelper.radian(rotation[2])
     );
-    ItemModel.getForWithFallback(this.id, 0).setUiModel(mesh, texture ?? model);
+   const model = ItemModel.getForWithFallback(ItemID[this.id], 0);
+   model.setUiModel(mesh, texture);
   }
 }

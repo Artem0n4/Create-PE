@@ -8,9 +8,9 @@ type name = string;
 type texture = string;
 
 /**
- *  __ dir __ + "resources/models/"
+ *  __ dir __ + "resources/assets/models/"
  */
-const models_dir = __dir__ + "resources/models/";
+const models_dir = __dir__ + "resources/assets/models/";
 
 const MathHelper = {
     randomValue: function (...values): any {
@@ -22,3 +22,9 @@ const MathHelper = {
     }
   };
   
+  enum EShaftRotation {
+  FIRST = 0,
+  SECOND = 1,
+  THIRD = 2,
+  FOURTH = 3
+  }

@@ -5,10 +5,14 @@
 	},
 	"exclude": [],
 	"include": [
+		"translations.ts",
 		"header.ts",
 		"Utils/CItem.ts",
+		"Utils/CBlock.ts",
 		"ItemGenerator.ts",
 		"Wrench.ts",
-		"Utils/LiquidFactory.ts"
+		"Utils/LiquidFactory.ts",
+		"Sources/ShaftBase.ts",
+		"Sources/Shaft.ts"
 	]
 }
