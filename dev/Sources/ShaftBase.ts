@@ -26,7 +26,9 @@ abstract class ShaftBase extends TileEntityBase {
     rz: int = 0,
     y = 1.5
   ) {
+
     this["rotation"] = ObjectValues(arguments);
+    Game.message(this["rotation"])
     const mesh = new RenderMesh();
     mesh.importFromFile(models_dir + "block/shaft" + ".obj", "obj", {
       translate: [0.5, y, 0.5],
@@ -94,5 +96,10 @@ abstract class ShaftBase extends TileEntityBase {
  
    // if(this.data.HF > 0)
      this.rotate(this["animation"]);
+  };
+
+  destroy(): boolean {
+      this["animation"].destroy();
+      return false;
   }
 }
