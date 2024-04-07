@@ -18,8 +18,7 @@ Callback.addCallback("ItemUse", (coords, item, block, itExternal, player) => {
 }) 
 
 class Shaft extends ShaftBase {
-
-
+  
     
 };
 

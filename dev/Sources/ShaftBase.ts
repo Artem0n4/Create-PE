@@ -96,7 +96,7 @@ abstract class ShaftBase extends TileEntityBase {
         coords = { x: 0, y: 0, z: 0.01 };
         break;
       case EShaftSide.FOURTH:
-        coords = { x: 0.01, y: 0, z: 0 };
+        coords = { x: 0, y: 0, z: 0.01 }; //x: 0.01, y: 0, z: 0
         break;
       case EShaftSide.SECOND:
         coords = { x: 0, y: 0, z: 0.01 };
@@ -126,7 +126,7 @@ abstract class ShaftBase extends TileEntityBase {
       this.blockSource.getBlockData(x, y, z) ===
         this.blockSource.getBlockData(this.x, this.y, this.z)
     );
-  }
+  };
 
   public restart(x, y, z) {
     const tile = TileEntity.getTileEntity(x, y, z);
@@ -163,6 +163,16 @@ abstract class ShaftBase extends TileEntityBase {
     while (tile.validateShafts(tile.x, tile.y, tile.z - i)) {
       tile.restart(tile.x, tile.y, tile.z - i);
       i++;
+    };
+
+    while (tile.validateShafts(tile.x, tile.y + i, tile.z)) {
+      tile.restart(tile.x, tile.y + i, tile.z);
+      i++;
+    }
+
+    while (tile.validateShafts(tile.x, tile.y - i, tile.z)) {
+      tile.restart(tile.x, tile.y - i, tile.z);
+      i++;
     }
   }
 
@@ -171,10 +181,8 @@ abstract class ShaftBase extends TileEntityBase {
     item: ItemStack,
     player: number
   ): any {
-    if (Entity.getSneaking(player) === true) {
-      this.restart(this.x, this.y, this.z);
-      return this.restartAnimationByShaft(this.x, this.y, this.z);
-    }
+
+    
     const animation = this.data.animation as Animation.Base;
     animation.destroy();
     const data = this.blockSource.getBlockData(this.x, this.y, this.z);
@@ -192,6 +200,9 @@ abstract class ShaftBase extends TileEntityBase {
     animation.describe({ mesh, skin: "models/block/shaft.png" });
     animation.load();
 
+    this.restart(this.x, this.y, this.z);
+    this.restartAnimationByShaft(this.x, this.y, this.z);
+        
     return false;
   }
 }
