@@ -1,28 +1,14 @@
-enum EShaftRotation {
-  X = Math.PI / 2,
-  /**
-   * must use also using X
-   */
-  XY = Math.PI / 2,
-  Z = 0,
-}
-
-enum EShaftSide {
-  FIRST = 0,
-  SECOND = 1,
-  THIRD = 2,
-  FOURTH = 3,
-}
 
 abstract class ShaftBase extends TileEntityBase {
   public defaultValues = {
     placed: "side",
-    HF: 0,
+    energy: 0,
+    rotation: 0
   };
 
   public static formingRender(
-    rx: EShaftRotation.X | 0 = Math.PI / 2,
-    ry: EShaftRotation.XY | 0 = 0,
+    rx: ETrinketRotation.X | 0 = Math.PI / 2,
+    ry: ETrinketRotation.XY | 0 = 0,
     rz: int = 0,
     y = 0.5
   ) {
@@ -39,28 +25,29 @@ abstract class ShaftBase extends TileEntityBase {
   }
 
   public formingRenderBySides(player) {
-    if (Entity.getSneaking(player) === true) {
-      this.data.placed = "up";
-      return ShaftBase.formingRender(0, 0, 0, 0);
-    }
-
+      
     let render;
 
     switch (this.blockSource.getBlockData(this.x, this.y, this.z)) {
-      case EShaftSide.FIRST:
+      case ETrinketSide.FIRST:
         render = ShaftBase.formingRender();
+        this.data.rotation = { x: 0, y: 0, z: 0.01 };
         break;
-      case EShaftSide.SECOND: //SECOND
-        render = ShaftBase.formingRender(EShaftRotation.X, EShaftRotation.XY);
+      case ETrinketSide.SECOND: //SECOND
+        render = ShaftBase.formingRender(ETrinketRotation.X, ETrinketRotation.XY);
+        this.data.rotation = { x: 0.01, y: 0, z: 0 }; //{ x: 0, y: 0, z: 0.01 };
         break;
-      case EShaftSide.THIRD: //THIRD
+      case ETrinketSide.THIRD: //THIRD
         render = ShaftBase.formingRender();
+        this.data.rotation = { x: 0, y: 0, z: 0.01 };
         break;
-      case EShaftSide.FOURTH:
-        render = ShaftBase.formingRender(EShaftRotation.X, EShaftRotation.XY);
+      case ETrinketSide.FOURTH:
+        render = ShaftBase.formingRender(ETrinketRotation.X, ETrinketRotation.XY);
+        this.data.rotation = { x: 0.01, y: 0, z: 0 }
         break;
       default:
-        ShaftBase.formingRender(EShaftRotation.X);
+        ShaftBase.formingRender(ETrinketRotation.X);
+        this.data.rotation = { x: 0, y: 0, z: 0.01 };
     }
 
     return render;
@@ -73,6 +60,7 @@ abstract class ShaftBase extends TileEntityBase {
       this.z + 0.5
     ));
     const mesh = this.formingRenderBySides(Player.getLocal()); //?
+    Game.message(this.data.rotation)
     animation.describe({ mesh, skin: "models/block/shaft.png" });
     animation.load();
 
@@ -81,38 +69,16 @@ abstract class ShaftBase extends TileEntityBase {
   public static defineValue(player) {}
 
   public rotate(animation: Animation.Base) {
-    const rotation = this.validateRotation();
+    const rotation = this.data.rotation
     animation.load();
-    if (this.data.placed === "up")
-      return animation.transform().rotate(0, 0.01, 0);
-    animation.transform().rotate(rotation.x, rotation.y, rotation.z);
+    if (this.data.placed === "up") {
+      return animation.transform().rotate(0, 0.01, 0),
+      animation.refresh();
+    };
+    if(typeof this.data.rotation === "object") {
+   return animation.transform().rotate(rotation.x , rotation.y, rotation.z),
     animation.refresh();
-  }
-
-  public validateRotation() {
-    let coords: Record<string, number> = {};
-    switch (this.blockSource.getBlockData(this.x, this.y, this.z)) {
-      case EShaftSide.FIRST:
-        coords = { x: 0, y: 0, z: 0.01 };
-        break;
-      case EShaftSide.FOURTH:
-        coords = { x: 0, y: 0, z: 0.01 }; //x: 0.01, y: 0, z: 0
-        break;
-      case EShaftSide.SECOND:
-        coords = { x: 0, y: 0, z: 0.01 };
-        break;
-      case EShaftSide.THIRD:
-        coords = { x: 0, y: 0, z: 0.01 };
-        break;
-    }
-    return coords;
-  }
-
-  public onTick(): void {
-    if (!this.data.animation) return;
-
-    // if(this.data.HF > 0)
-    this.rotate(this.data.animation);
+     }
   }
 
   destroy(): boolean {
@@ -122,7 +88,7 @@ abstract class ShaftBase extends TileEntityBase {
 
   public validateShafts(x, y, z) {
     return (
-      this.blockSource.getBlockId(x, y, z) === BlockID["shaft"] &&
+      this.blockSource.getBlockId(x, y, z) === ECreateTrinket.SHAFT &&
       this.blockSource.getBlockData(x, y, z) ===
         this.blockSource.getBlockData(this.x, this.y, this.z)
     );
@@ -135,6 +101,7 @@ abstract class ShaftBase extends TileEntityBase {
       tile.data.animation.load();
     }
   }
+
 
   public restartAnimationByShaft(x, y, z) {
     const tile: TileEntity = TileEntity.getTileEntity(
@@ -150,28 +117,32 @@ abstract class ShaftBase extends TileEntityBase {
       i++;
     }
 
-    while (tile.validateShafts(tile.x - i, tile.y, tile.z)) {
-      tile.restart(tile.x - i, tile.y, tile.z);
+    let k = 1;
+    while (tile.validateShafts(tile.x - k, tile.y, tile.z)) {
+      tile.restart(tile.x - k, tile.y, tile.z);
       i++;
     }
 
-    while (tile.validateShafts(tile.x, tile.y, tile.z + i)) {
-      tile.restart(tile.x, tile.y, tile.z + i);
+    let d = 1;
+    while (tile.validateShafts(tile.x, tile.y, tile.z + d)) {
+      tile.restart(tile.x, tile.y, tile.z + d);
       i++;
     }
 
-    while (tile.validateShafts(tile.x, tile.y, tile.z - i)) {
-      tile.restart(tile.x, tile.y, tile.z - i);
+    let b = 1;
+    while (tile.validateShafts(tile.x, tile.y, tile.z - b)) {
+      tile.restart(tile.x, tile.y, tile.z - b);
       i++;
     };
-
-    while (tile.validateShafts(tile.x, tile.y + i, tile.z)) {
-      tile.restart(tile.x, tile.y + i, tile.z);
+    let r = 1;
+    while (tile.validateShafts(tile.x, tile.y + r, tile.z)) {
+      tile.restart(tile.x, tile.y + r, tile.z);
       i++;
     }
 
-    while (tile.validateShafts(tile.x, tile.y - i, tile.z)) {
-      tile.restart(tile.x, tile.y - i, tile.z);
+    let m = 1;
+    while (tile.validateShafts(tile.x, tile.y - m, tile.z)) {
+      tile.restart(tile.x, tile.y - m, tile.z);
       i++;
     }
   }

@@ -3,9 +3,13 @@ translations.ts
 header.ts
 Utils/CItem.ts
 Utils/CBlock.ts
+Utils/BlockAnimation.ts
+Machine/EnergySource.ts
+Machine/KineticBase.ts
 ItemGenerator.ts
 Wrench.ts
 Utils/LiquidFactory.ts
 Sources/ShaftBase.ts
 Sources/Shaft.ts
+Sources/HandCrank.ts
 
