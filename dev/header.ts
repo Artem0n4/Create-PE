@@ -51,3 +51,11 @@ enum ETrinketSide {
   THIRD = 2,
   FOURTH = 3,
 }
+
+type coords_xyz = {
+  x: int,
+  y: int,
+  z: int
+};
+
+type rotation = coords_xyz;

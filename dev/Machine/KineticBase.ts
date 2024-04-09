@@ -1,4 +1,4 @@
-class KineticBase extends BlockAnimation {
+class KineticBase extends TileEntityBase {
     public defaultValues: {
         energy: 0,
         energy_max: 256

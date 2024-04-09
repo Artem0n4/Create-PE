@@ -3,7 +3,7 @@ interface IEnergySourceDescriptor {
   energy_max:  int;
 }
 
-class EnergySource extends BlockAnimation {
+class EnergySource extends TileEntityBase {
   public static source_list = {};
   public name: string;
   constructor(descriptor: IEnergySourceDescriptor) {
