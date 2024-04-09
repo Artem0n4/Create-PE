@@ -1,7 +1,8 @@
-abstract class ShaftBase extends TileEntityBase {
+abstract class ShaftBase extends KineticBase {
   public defaultValues = {
     placed: "side",
     energy: 0,
+    energy_max: 256,
     rotation: 0,
   };
 

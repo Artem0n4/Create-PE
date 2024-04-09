@@ -1,7 +1,7 @@
 class KineticBase extends TileEntityBase {
     public defaultValues: {
-        energy: 0,
-        energy_max: 256
+        energy: number,
+        energy_max: number
     };
 
     public getEnergySource(x, y, z) {
@@ -10,7 +10,7 @@ class KineticBase extends TileEntityBase {
         }
     };
     
-    public consumeEnergy(x, y, z) {
+    public consumeEnergy(x: int, y: int, z: int) {
         if(this.getEnergySource(x, y, z) === false) return null;
    const tile = TileEntity.getTileEntity(x, y, z);
    if(tile && tile.data.energy) {

@@ -18,14 +18,21 @@ Callback.addCallback("ItemUse", (coords, item, block, itExternal, player) => {
 }) 
 
 class Shaft extends ShaftBase {
-
+public consumeEnergyBySides(): void {
+    super.consumeEnergyBySides();
+    Game.message("energy: " + this.data.energy)
+    this.restart(this.x, this.y, this.z)
+    this.restartAnimationByShaft(this.x, this.y, this.z)
+}
     public override onTick(): void {
         if (!this.data.animation) return;
-    
-       // if(this.data.energy > 0)
+    //
+        //this.consumeEnergyBySides();
+        if(this.data.energy > 0)
       return this.rotate(this.data.animation);
-      }
+   //   }
     
+};
 };
 
 TileEntity.registerPrototype(ECreateTrinket.SHAFT, new Shaft());

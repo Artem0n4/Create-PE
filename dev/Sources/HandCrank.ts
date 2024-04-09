@@ -18,7 +18,8 @@ class HandCrank extends EnergySource {
 public defaultValues = {
     state: 'plus',
     
-    timer: 0
+    timer: 0,
+    energy: 0
 }
   public init(): void {
     const animation = (this["animation"] = new BlockAnimation(
@@ -66,6 +67,7 @@ public defaultValues = {
 
   public onTick(): void {
       if(this.data.timer > 0) {
+        this.data.energy++;
         const animation = this["animation"] as BlockAnimation;
         this.data.timer < 20 ? this.data.timer++ : this.data.timer = 0;
         const xyz = this.data.state === "minus" ? 0.01 * -1 : 0.01 

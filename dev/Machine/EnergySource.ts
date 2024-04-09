@@ -20,7 +20,7 @@ class EnergySource extends TileEntityBase {
   }
   public validationEnergyToProvide(): int {
     if (this.data.energy < this.data.provide_max) {
-      return Math.abs(this.data.provide_max - this.data.energy);
+      return Math.abs(this.data.provide_max - this.data.energy) - this.data.provide_max;
     }
     return this.data.provide_max;
   };

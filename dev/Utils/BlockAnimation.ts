@@ -34,11 +34,23 @@ class BlockAnimation {
   public mesh: IRenderMeshDescriptor;
   public animation: IAnimationBaseDescriptor;
   public static side_rotation = {
+    /** {  
+      x: 90,  
+      y: 0,   
+      z: 0,  
+    }  
+     */
     FIRST: {
       x: 90,
       y: 0,
       z: 0,
     },
+        /** {  
+      x: 90,  
+      y: 90,  
+      z: 0,  
+    }
+     */
     SECOND: {
       x: 90,
       y: 90,
@@ -153,7 +165,6 @@ class BlockAnimation {
       default:
         render = animation(data.default);
     }
-    Game.message("this.animation by BlockAnimation:" + this["rotation"]);
     return render;
   }
   public rotate(x?: int, y?: int, z?: int) {
