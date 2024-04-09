@@ -18,20 +18,11 @@ Callback.addCallback("ItemUse", (coords, item, block, itExternal, player) => {
 }) 
 
 class Shaft extends ShaftBase {
-    public formingRenderBySides(player) {
-        if (Entity.getSneaking(player) === true) {
-          this.data.placed = "up";
-          return ShaftBase.formingRender(0, 0, 0, 0);
-        }
-    
-  if(this.data.placed !== "up") super.formingRenderBySides(player);
-        
-      };
 
     public override onTick(): void {
         if (!this.data.animation) return;
     
-        if(this.data.energy > 0)
+       // if(this.data.energy > 0)
       return this.rotate(this.data.animation);
       }
     

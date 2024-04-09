@@ -1,12 +1,12 @@
 interface IRenderMeshDescriptor {
   model: string;
   /**
- * rotation in gradus
- */
-  rotation: { x: int; y: int; z: int };
+   * rotation in gradus
+   */
+  rotation?: { x: int; y: int; z: int };
   importParams: {
-    scale: [int, int, int];
-    translate: [int, int, int];
+    scale?: [int, int, int];
+    translate?: [int, int, int];
     noRebuild: boolean;
     invertV: boolean;
   };
@@ -18,29 +18,37 @@ interface IAnimationBaseDescriptor {
   readonly light_pos: coords_xyz;
 }
 
-
-
 class BlockAnimation {
+  public mesh: IRenderMeshDescriptor;
+  public animation: IAnimationBaseDescriptor;
   public static side_rotation = {
     FIRST: {
-      x: 90, y: 0, z: 0
+      x: 90,
+      y: 0,
+      z: 0,
     },
     SECOND: {
-      x: 90, y: 90, z: 0
+      x: 90,
+      y: 90,
+      z: 0,
     },
-  }
+  };
   constructor(
-    public mesh: IRenderMeshDescriptor,
-    public animation: IAnimationBaseDescriptor
-  ) {}
+    mesh: IRenderMeshDescriptor,
+    animation: IAnimationBaseDescriptor
+  ) {
+    mesh.rotation = mesh.rotation || {x: 0, y: 0, z: 0};
+ this.mesh = mesh;
+ this.animation = animation;
+  }
   /**
    * input rotation with graduses
-   * @rotation_optional your rotation, combining for rotation declared in constructor 
+   * @rotation_optional your rotation, combining for rotation declared in constructor
    * @returns RenderMesh
    */
-  protected generateMesh(rotation_optional: coords_xyz = {
-    x: 0, y: 0, z: 0
-  }): RenderMesh {
+  protected generateMesh(
+    x, y, z
+  ): RenderMesh {
     const { importParams, rotation } = this.mesh;
     const mesh = new RenderMesh();
     mesh.importFromFile(
@@ -54,25 +62,37 @@ class BlockAnimation {
       }
     );
     mesh.rotate(
-      MathHelper.radian((rotation.x || 0) + rotation_optional.x),
-      MathHelper.radian((rotation.y || 0) + rotation_optional.y),
-      MathHelper.radian((rotation.z || 0) + rotation_optional.z)
+      MathHelper.radian((rotation.x) + (x || 0)),
+      MathHelper.radian((rotation.y) + (y || 0)),
+      MathHelper.radian((rotation.z) + (z || 0))
     );
     return mesh;
   }
-  protected createAnimation(rotation: rotation): Animation.Base {
+  public createAnimation(x: int, y: int, z: int): Animation.Base {
     const { pivot_point, texture, light_pos } = this.animation;
-    const mesh = this.generateMesh(rotation);
+    const mesh = this.generateMesh(x, y, z);
     const animation = new Animation.Base(
       pivot_point.x,
       pivot_point.y,
       pivot_point.z
     );
-    animation.describe({ mesh, skin: texture });
+    animation.describe({ mesh, skin: "models/block/" + texture + ".png" });
     animation.setBlockLightPos(light_pos.x, light_pos.y, light_pos.z);
+    this[this.mesh.model] = animation;
     return animation;
-  }
-  protected createAnimationWithSides(blockSource: BlockSource, x, y, z) {
+    
+  };
+
+  /**
+   * must be load before createAnimation()
+   * 
+   */
+  public getAnimationBase(): Animation.Base {
+    const model = this[this.mesh.model] as Animation.Base;
+      return model && this[this.mesh.model]
+  };
+
+  public createAnimationWithSides(blockSource: BlockSource, coords): Animation.Base {
     const that = this;
     const animation = (rotate: coords_xyz) => {
       const obj = {
@@ -80,49 +100,65 @@ class BlockAnimation {
         y: rotate.y || 0,
         z: rotate.z || 0,
       };
-      that.createAnimation(
-        obj);
-      this["rotation"] = ((!!rotate.x && !!rotate.y) ? {
-        x: 0.1, y: 0, z: 0 
-      } : {
-        x: 0, y: 0, z: 0.1
-      }) as coords_xyz;
+ 
+      that["rotation"] = (
+        !!rotate.x && !!rotate.y
+          ? {
+              x: 0.1,
+              y: 0,
+              z: 0,
+            }
+          : {
+              x: 0,
+              y: 0,
+              z: 0.1,
+            }
+      ) as coords_xyz;
+      return that.createAnimation(obj.x, obj.y, obj.z);
     };
 
     let render;
 
-    
-    switch (blockSource.getBlockData(x, y, z)) {
+    switch (blockSource.getBlockData(coords.x, coords.y, coords.z)) {
       case ETrinketSide.FIRST:
-        render = this.createAnimation(BlockAnimation.side_rotation.FIRST);
+        render = animation(BlockAnimation.side_rotation.FIRST);
         break;
       case ETrinketSide.SECOND: //SECOND
-        render = this.createAnimation(
-          BlockAnimation.side_rotation.SECOND
-        );
+        render = animation(BlockAnimation.side_rotation.SECOND);
         break;
       case ETrinketSide.THIRD: //THIRD
-        render = this.createAnimation(BlockAnimation.side_rotation.FIRST);
+        render = animation(BlockAnimation.side_rotation.FIRST);
         break;
       case ETrinketSide.FOURTH:
-        render = this.createAnimation(BlockAnimation.side_rotation.SECOND);
+        render = animation(BlockAnimation.side_rotation.SECOND);
         break;
       default:
-        render = this.createAnimation(BlockAnimation.side_rotation.FIRST);
+        render = animation(BlockAnimation.side_rotation.FIRST);
     }
-
+    Game.message("this.animation by BlockAnimation:" + this["rotation"]);
     return render;
-  };
-  public rotateAnimation(rotate: coords_xyz) {
-    const animation = this[this.mesh.model] as Animation.Base
-    if(animation && !!animation) {
+  }
+  public rotate(x?: int, y?: int, z?: int) {
+    const animation = this[this.mesh.model] as Animation.Base;
+    const rotation = this["rotation"] as coords_xyz;
+    if (animation && !!animation && rotation && typeof rotation === 'object') {
       animation.load();
-      animation.transform().rotate(rotate.x, rotate.y, rotate.z)
+      animation
+        .transform()
+        .rotate(
+          x || rotation.x,
+         y || rotation.y,
+           z || rotation.z
+        );
       animation.refresh();
     }
   }
-  public initializeAnimation() {
+  public initialize() {
     const animation = this[this.mesh.model] as Animation.Base;
-    animation.load();
+    animation && animation.load();
   };
+  public destroy() {
+    const animation = this[this.mesh.model] as Animation.Base;
+    animation && animation.destroy();
+  }
 }
