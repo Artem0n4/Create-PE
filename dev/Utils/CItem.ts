@@ -40,7 +40,7 @@ class CItem {
     const model = ItemModel.getForWithFallback(ItemID[this.id], 0);
     model.setHandModel(
       this.model(model_name, import_params),
-      texture
+      "models/" + texture
     );
 
   }
@@ -48,7 +48,7 @@ class CItem {
     const model = ItemModel.getForWithFallback(ItemID[this.id], 0);
     model.setModel(
       this.model(model, import_params),
-      texture
+      "models/" + texture
     );
 
   }
@@ -65,6 +65,6 @@ class CItem {
       MathHelper.radian(rotation[2])
     );
    const model = ItemModel.getForWithFallback(ItemID[this.id], 0);
-   model.setUiModel(mesh, texture);
+   model.setUiModel(mesh, "models/" + texture);
   }
 }

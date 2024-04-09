@@ -24,8 +24,8 @@ class CBlock {
 
         ItemModel.getForWithFallback(BlockID[this.id], 0).setModel(
           mesh,
-          texture
-        ).setTexture(texture);
+          "models/" + texture
+        )
 
       }
     public createWithRotation() {

@@ -50,7 +50,8 @@ abstract class ShaftBase extends TileEntityBase {
   }
 
   destroy(): boolean {
-    this.data.animation.destroy();
+    const animation = this.data.animation as BlockAnimation;
+    animation.destroy();
     return false;
   }
 
@@ -64,8 +65,7 @@ abstract class ShaftBase extends TileEntityBase {
 
   public restart(x, y, z) {
     const tile = TileEntity.getTileEntity(x, y, z);
-    const animation = tile.data.animation as BlockAnimation
-    animation.getAnimationBase();
+    const animation = tile.data.animation as BlockAnimation;
     if (tile && tile.data && tile.data.animation) {
       animation.destroy();
       animation.initialize();
@@ -89,30 +89,30 @@ abstract class ShaftBase extends TileEntityBase {
     let k = 1;
     while (tile.validateShafts(tile.x - k, tile.y, tile.z)) {
       tile.restart(tile.x - k, tile.y, tile.z);
-      i++;
+      k++;
     }
 
     let d = 1;
     while (tile.validateShafts(tile.x, tile.y, tile.z + d)) {
       tile.restart(tile.x, tile.y, tile.z + d);
-      i++;
+      d++;
     }
 
     let b = 1;
     while (tile.validateShafts(tile.x, tile.y, tile.z - b)) {
       tile.restart(tile.x, tile.y, tile.z - b);
-      i++;
+      b++;
     }
     let r = 1;
     while (tile.validateShafts(tile.x, tile.y + r, tile.z)) {
       tile.restart(tile.x, tile.y + r, tile.z);
-      i++;
+      r++;
     }
 
     let m = 1;
     while (tile.validateShafts(tile.x, tile.y - m, tile.z)) {
       tile.restart(tile.x, tile.y - m, tile.z);
-      i++;
+      m++;
     }
   }
 
@@ -121,7 +121,7 @@ abstract class ShaftBase extends TileEntityBase {
     item: ItemStack,
     player: number
   ): any {
-    const animation = this.data.animation as Animation.Base;
+    const animation = this.data.animation as BlockAnimation
     animation.destroy();
     const data = this.blockSource.getBlockData(this.x, this.y, this.z);
     this.blockSource.setBlock(
@@ -133,7 +133,9 @@ abstract class ShaftBase extends TileEntityBase {
     );
     TileEntity.addTileEntity(this.x, this.y, this.z, this.blockSource);
 
-    animation.load();
+    animation.createAnimationWithSides(this.blockSource, this);
+    this.data.animation = animation;
+    animation.initialize();
 
     this.restart(this.x, this.y, this.z);
     this.restartAnimationByShaft(this.x, this.y, this.z);

@@ -7,7 +7,7 @@ const SHAFT = new CBlock("shaft", [{
 },
 ]).createWithRotation();
 
-SHAFT.setItemModel("item/shaft", "models/item/shaft", {
+SHAFT.setItemModel("item/shaft", "item/shaft", {
     translate: [0.5, 0.5, 0.5], scale: [1.1, 1.1, 1.1], invertV: false, noRebuild: false 
 }); 
 
@@ -28,4 +28,17 @@ class Shaft extends ShaftBase {
     
 };
 
-TileEntity.registerPrototype(BlockID["shaft"], new Shaft())
+TileEntity.registerPrototype(ECreateTrinket.SHAFT, new Shaft());
+
+(() => {
+    const first = new ICRender.CollisionShape();
+    first.addEntry().addBox(0.375, 0.5, 0, 0.625, 0.75, 1);
+
+    const second = new ICRender.CollisionShape();
+    second.addEntry().addBox(0, 0.5, 0.375, 1, 0.75, 0.625);
+    BlockRenderer.setCustomCollisionAndRaycastShape(ECreateTrinket.SHAFT, 0, first);
+    BlockRenderer.setCustomCollisionAndRaycastShape(ECreateTrinket.SHAFT, 1, first); //1, 2 = 90 graduses
+
+    BlockRenderer.setCustomCollisionAndRaycastShape(ECreateTrinket.SHAFT, 2, second);
+    BlockRenderer.setCustomCollisionAndRaycastShape(ECreateTrinket.SHAFT, 3, second)
+})()

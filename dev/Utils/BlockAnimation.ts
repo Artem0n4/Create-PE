@@ -1,4 +1,8 @@
 interface IRenderMeshDescriptor {
+  /**
+   * model name without block/   
+   * for example: "shaft"
+   */
   model: string;
   /**
    * rotation in gradus
@@ -17,6 +21,14 @@ interface IAnimationBaseDescriptor {
   readonly texture: string;
   readonly light_pos: coords_xyz;
 }
+
+interface IDataRotationDescriptor {
+  zero: coords_xyz,
+  first: coords_xyz,
+  second: coords_xyz,
+  third: coords_xyz,
+  default: coords_xyz
+};
 
 class BlockAnimation {
   public mesh: IRenderMeshDescriptor;
@@ -92,7 +104,13 @@ class BlockAnimation {
       return model && this[this.mesh.model]
   };
 
-  public createAnimationWithSides(blockSource: BlockSource, coords): Animation.Base {
+  public createAnimationWithSides(blockSource: BlockSource, coords: TileEntity, data: IDataRotationDescriptor = {
+    zero: BlockAnimation.side_rotation.FIRST,
+    first: BlockAnimation.side_rotation.SECOND,
+    second: BlockAnimation.side_rotation.FIRST,
+    third: BlockAnimation.side_rotation.SECOND,
+    default: BlockAnimation.side_rotation.FIRST
+  }): Animation.Base {
     const that = this;
     const animation = (rotate: coords_xyz) => {
       const obj = {
@@ -121,19 +139,19 @@ class BlockAnimation {
 
     switch (blockSource.getBlockData(coords.x, coords.y, coords.z)) {
       case ETrinketSide.FIRST:
-        render = animation(BlockAnimation.side_rotation.FIRST);
+        render = animation(data.zero);
         break;
-      case ETrinketSide.SECOND: //SECOND
-        render = animation(BlockAnimation.side_rotation.SECOND);
+      case ETrinketSide.THIRD: //SECOND
+        render = animation(data.second);
         break;
-      case ETrinketSide.THIRD: //THIRD
-        render = animation(BlockAnimation.side_rotation.FIRST);
+      case ETrinketSide.SECOND: //THIRD
+        render = animation(data.first);
         break;
       case ETrinketSide.FOURTH:
-        render = animation(BlockAnimation.side_rotation.SECOND);
+        render = animation(data.third);
         break;
       default:
-        render = animation(BlockAnimation.side_rotation.FIRST);
+        render = animation(data.default);
     }
     Game.message("this.animation by BlockAnimation:" + this["rotation"]);
     return render;
@@ -152,13 +170,21 @@ class BlockAnimation {
         );
       animation.refresh();
     }
-  }
+  };
+
+  public rotateBySumm(x?: int, y?: int, z?: int) {
+    const validateCoord = (rotate: int, coord: int) => 
+       rotate > 0 ? rotate + coord : 0;
+
+    const rotation = this["rotation"] as coords_xyz;
+       return this.rotate(validateCoord(rotation.x, x), validateCoord(rotation.y, y), validateCoord(rotation.z, z))
+  };
   public initialize() {
     const animation = this[this.mesh.model] as Animation.Base;
-    animation && animation.load();
+   return animation && animation.load();
   };
   public destroy() {
     const animation = this[this.mesh.model] as Animation.Base;
-    animation && animation.destroy();
+   return animation && animation.destroy();
   }
 }
