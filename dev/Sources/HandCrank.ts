@@ -37,13 +37,7 @@ public defaultValues = {
       }
     ) as BlockAnimation);
 
-    animation.createAnimationWithSides(this.blockSource, this, {
-      zero: { x: 0, y: 0, z: 0 },
-      first: { x: 0, y: 90, z: 0 },
-      second: { x: -180, y: 0, z: 0 },
-      third: { x: 0, y: -90, z: 0 },
-      default: { x: 0, y: 0, z: 0 },
-    });
+    animation.createAnimationWithSides(this.blockSource, this);
     this.data.animation = animation;
     animation.initialize();
   }
