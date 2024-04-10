@@ -59,3 +59,32 @@ type coords_xyz = {
 };
 
 type rotation = coords_xyz;
+
+enum EDestroyLevel {
+  HAND = 0,
+  WOOD = 1,
+  STONE = 2,
+  IRON = 3,
+  DIAMOND = 4
+};
+
+const setupBlockShapeByData = (
+  id: int,
+  data: int,
+  x1: int,
+  y1: int,
+  z1: int,
+  x2: int,
+  y2: int,
+  z2: int
+) => {
+  const render = new BlockRenderer.Model();
+  const shape = new ICRender.CollisionShape();
+
+  render.addBox(x1, y1, z1, x2, y2, z2, id, data);
+  shape.addEntry().addBox(x1, y1, z1, x2, y2, z2)
+
+  const model = new ICRender.Model(render);
+  BlockRenderer.setCustomCollisionShape(id, data, shape);
+  return BlockRenderer.setStaticICRender(id, data, model);
+};

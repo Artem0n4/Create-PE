@@ -117,33 +117,22 @@ class BlockAnimation {
   };
 
   public createAnimationWithSides(blockSource: BlockSource, coords: TileEntity, data: IDataRotationDescriptor = {
-    zero: BlockAnimation.side_rotation.FIRST,
-    first: BlockAnimation.side_rotation.SECOND,
-    second: BlockAnimation.side_rotation.FIRST,
-    third: BlockAnimation.side_rotation.SECOND,
-    default: BlockAnimation.side_rotation.FIRST
+    zero: { x: 0, y: 0, z: 0 },
+    first: { x: 0, y: 90, z: 0 },
+    second: { x: -180, y: 0, z: 0 },
+    third: { x: 0, y: -90, z: 0 },
+    default: { x: 0, y: 0, z: 0 },
   }): Animation.Base {
     const that = this;
-    const animation = (rotate: coords_xyz) => {
+    const animation = (rotate: coords_xyz, rx, ry, rz) => {
       const obj = {
         x: rotate.x || 0,
         y: rotate.y || 0,
         z: rotate.z || 0,
       };
  
-      that["rotation"] = (
-        !!rotate.x && !!rotate.y
-          ? {
-              x: 0.1,
-              y: 0,
-              z: 0,
-            }
-          : {
-              x: 0,
-              y: 0,
-              z: 0.1,
-            }
-      ) as coords_xyz;
+      that["rotation"] = {x: rx, y: ry, z: rz} 
+      //rotate is rotate by side, rotation its coords to dynamic rotation 
       return that.createAnimation(obj.x, obj.y, obj.z);
     };
 
@@ -151,19 +140,19 @@ class BlockAnimation {
 
     switch (blockSource.getBlockData(coords.x, coords.y, coords.z)) {
       case ETrinketSide.FIRST:
-        render = animation(data.zero);
+        render = animation(data.zero, 0, 0, 0.01);
         break;
       case ETrinketSide.THIRD: //SECOND
-        render = animation(data.second);
+        render = animation(data.second, 0, 0, 0.01);
         break;
       case ETrinketSide.SECOND: //THIRD
-        render = animation(data.first);
+        render = animation(data.first, 0.01, 0, 0);
         break;
       case ETrinketSide.FOURTH:
-        render = animation(data.third);
+        render = animation(data.third, 0.01, 0, 0);
         break;
       default:
-        render = animation(data.default);
+        render = animation(data.default, 0, 0, 0.01);
     }
     return render;
   }

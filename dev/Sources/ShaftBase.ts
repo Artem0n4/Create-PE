@@ -5,7 +5,13 @@ abstract class ShaftBase extends KineticBase {
     energy_max: 256,
     rotation: 0,
   };
-
+  public static sideDataDescriptor = {
+    zero: BlockAnimation.side_rotation.FIRST,
+    first: BlockAnimation.side_rotation.SECOND,
+    second: BlockAnimation.side_rotation.FIRST,
+    third: BlockAnimation.side_rotation.SECOND,
+    default: BlockAnimation.side_rotation.FIRST,
+  };
   init(): void {
     const animation = new BlockAnimation(
       {
@@ -30,13 +36,13 @@ abstract class ShaftBase extends KineticBase {
       }
     ) as BlockAnimation;
     this.data.animation = animation; //мы передаём BlockAnimation
-    if(Entity.getSneaking(Player.getLocal()) === true) {
+    if (Entity.getSneaking(Player.getLocal()) === true) {
       animation.createAnimation(0, 0, 0);
       this.data.placed = "up";
-   } else {
-    animation.createAnimationWithSides(this.blockSource, this)
-      };
-          animation.initialize();
+    } else {
+      animation.createAnimationWithSides(this.blockSource, this, ShaftBase.sideDataDescriptor);
+    }
+    animation.initialize();
     this.restartAnimationByShaft(this.x, this.y, this.z);
   }
   public static defineValue(player) {}
@@ -44,10 +50,9 @@ abstract class ShaftBase extends KineticBase {
   public rotate(animation: BlockAnimation) {
     if (this.data.placed === "up") {
       return animation.rotate(0, 0.1, 0);
-    };
+    }
 
-  return animation.rotate();
-    
+    return animation.rotate();
   }
 
   destroy(): boolean {
@@ -116,14 +121,10 @@ abstract class ShaftBase extends KineticBase {
       m++;
     }
   }
-
-  onItemUse(
-    coords: Callback.ItemUseCoordinates,
-    item: ItemStack,
-    player: number
-  ): any {
-    const animation = this.data.animation as BlockAnimation
+  public updateSideByClick() {
+    const animation = this.data.animation as BlockAnimation;
     animation.destroy();
+
     const data = this.blockSource.getBlockData(this.x, this.y, this.z);
     this.blockSource.setBlock(
       this.x,
@@ -134,13 +135,21 @@ abstract class ShaftBase extends KineticBase {
     );
     TileEntity.addTileEntity(this.x, this.y, this.z, this.blockSource);
 
-    animation.createAnimationWithSides(this.blockSource, this);
+    animation.createAnimationWithSides(this.blockSource, this, ShaftBase.sideDataDescriptor);
     this.data.animation = animation;
     animation.initialize();
 
     this.restart(this.x, this.y, this.z);
     this.restartAnimationByShaft(this.x, this.y, this.z);
-
+  }
+  onItemUse(
+    coords: Callback.ItemUseCoordinates,
+    item: ItemStack,
+    player: number
+  ): any {
+    if (Entity.getSneaking(player) === true) {
+      this.updateSideByClick();
+    }
     return false;
   }
 }
