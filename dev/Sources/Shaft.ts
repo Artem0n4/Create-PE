@@ -59,7 +59,7 @@ TileEntity.registerPrototype(ECreateTrinket.SHAFT, new Shaft());
 
 setupBlockShapeByData(ECreateTrinket.SHAFT, 0, 0.375, 0.3, 0, 0.625, 0.7, 1);
 
-setupBlockShapeByData(ECreateTrinket.SHAFT, 2, 0.375, 0.3, 1, 0.625, 0.7, 1);
+setupBlockShapeByData(ECreateTrinket.SHAFT, 2, 0.375, 0.3, 0, 0.625, 0.7, 1);
 
 setupBlockShapeByData(ECreateTrinket.SHAFT, 1, 0, 0.3, 0.375, 1, 0.7, 0.625);
 
