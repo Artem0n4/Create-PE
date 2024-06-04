@@ -1,7 +1,7 @@
 IMPORT("BlockEngine");
 IMPORT("SoundAPI");
 IMPORT("StorageInterface");
-
+IMPORT("BlockAnimator");
 //types
 type int = number;
 type name = string;
