@@ -18,6 +18,7 @@
 		"machine/source/ShaftBase.ts",
 		"machine/source/Shaft.ts",
 		"machine/source/HandCrank.ts",
+		"machine/container/Basin.ts",
 		"train/*",
 		"final.ts"
 	]

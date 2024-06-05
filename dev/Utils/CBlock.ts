@@ -1,5 +1,5 @@
 class CBlock {
-    constructor(public id: string, public data, public type?) {
+    constructor(public id: string, public data: Block.BlockVariation[], public type?: string | Block.SpecialType) {
       IDRegistry.genBlockID(id);
         
     };
@@ -26,8 +26,28 @@ class CBlock {
           mesh,
           "models/" + texture
         )
+          return this;
+      };
 
-      }
+      public setupBlockModel(texture: string, model: string, scale?: [int, int, int], translate?: [int, int, int]) {
+        const mesh = new RenderMesh();
+        mesh.setBlockTexture(texture, 0);
+        mesh.importFromFile(
+          __dir__ + "/resources/assets/models/block/" + (model || texture) + ".obj",
+          "obj",
+          {
+            translate: translate || [0.5, 0, 0.5],
+            scale: scale,
+            invertV: false,
+            noRebuild: false,
+          }
+        );
+        const render = new ICRender.Model();
+        render.addEntry(new BlockRenderer.Model(mesh));
+        BlockRenderer.setStaticICRender(BlockID[this.id], 0, render);
+        return this;
+      };
+
     public createWithRotation() {
         IDRegistry.genBlockID(this.id);
         Block.createBlockWithRotation(
@@ -36,4 +56,7 @@ class CBlock {
           );
           return this;
     };
+    public getID(): int {
+      return ItemID[this.id];
+    }
 }

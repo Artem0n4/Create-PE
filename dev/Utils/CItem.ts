@@ -66,5 +66,8 @@ class CItem {
     );
    const model = ItemModel.getForWithFallback(ItemID[this.id], 0);
    model.setUiModel(mesh, "models/" + texture);
+  };
+  public getID(): int {
+    return ItemID[this.id];
   }
 }

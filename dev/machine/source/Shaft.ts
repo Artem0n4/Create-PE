@@ -1,26 +1,26 @@
-const SHAFT = new CBlock("shaft", [
-  {
-    name: "block.create.shaft",
-    texture: [
-      ["unknown", 0],
-      ["unknown", 0],
-      ["unknown", 0],
-      ["unknown", 0],
-      ["unknown", 0],
-      ["unknown", 0],
-    ],
-    inCreative: true,
-  },
-]).createWithRotation();
-
-SHAFT.setItemModel("item/shaft", "item/shaft", {
-  translate: [0.5, 0.5, 0.5],
-  scale: [1.1, 1.1, 1.1],
-  invertV: false,
-  noRebuild: false,
-});
-
 class Shaft extends TileEntityBase {
+  public static readonly BLOCK: CBlock = new CBlock("shaft", [
+    {
+      name: "block.create.shaft",
+      texture: [
+        ["unknown", 0],
+        ["unknown", 0],
+        ["unknown", 0],
+        ["unknown", 0],
+        ["unknown", 0],
+        ["unknown", 0],
+      ],
+      inCreative: true,
+    },
+  ])
+    .createWithRotation()
+    .setItemModel("item/shaft", "item/shaft", {
+      translate: [0.5, 0.5, 0.5],
+      scale: [1.1, 1.1, 1.1],
+      invertV: false,
+      noRebuild: false,
+    });
+
   public animation: BlockAnimator;
   public defaultValues = {
     speed: 0,
@@ -44,8 +44,8 @@ class Shaft extends TileEntityBase {
   );
   @BlockEngine.Decorators.NetworkEvent(Side.Client)
   updateModel(data: { mesh: RenderMesh }) {
-    if(!this.animation) return;
-    this.animation.describe(data.mesh, "block/shaft"); 
+    if (!this.animation) return;
+    this.animation.describe(data.mesh, "block/shaft");
     this.animation.load();
   } //!
   clientLoad(): void {
@@ -53,10 +53,7 @@ class Shaft extends TileEntityBase {
       new Vector3(this.x + 0.5, this.y + 0.5, this.z + 0.5),
       this
     );
-    this.animation.describe(
-      Shaft.RENDER_LIST,
-      "block/shaft"
-    );
+    this.animation.describe(Shaft.RENDER_LIST, "block/shaft");
     this.animation.load();
   }
   clientUnload(): void {
@@ -82,24 +79,19 @@ class Shaft extends TileEntityBase {
     } else {
       this.blockSource.setBlock(this.x, this.y, this.z, this.blockID, 4);
       this.sendPacket("updateModel", {
-        mesh: Shaft.RENDER_TOP 
+        mesh: Shaft.RENDER_TOP,
       });
     }
-  };
+  }
   static {
-    //now nothing
+    const id = Shaft.BLOCK.getID();
+    TileEntity.registerPrototype(id, new Shaft());
+    setupBlockShapeByData(id, 0, 0.375, 0.3, 0, 0.625, 0.7, 1);
+    setupBlockShapeByData(id, 2, 0, 0.3, 0.375, 1, 0.7, 0.625);
+    setupBlockShapeByData(id, 1, 0.375, 0.3, 0, 0.625, 0.7, 1);
+    setupBlockShapeByData(id, 3, 0, 0.3, 0.375, 1, 0.7, 0.625);
   }
 }
-
-TileEntity.registerPrototype(ECreateTrinket.SHAFT, new Shaft());
-
-setupBlockShapeByData(ECreateTrinket.SHAFT, 0, 0.375, 0.3, 0, 0.625, 0.7, 1);
-
-setupBlockShapeByData(ECreateTrinket.SHAFT, 2, 0, 0.3, 0.375, 1, 0.7, 0.625);
-
-setupBlockShapeByData(ECreateTrinket.SHAFT, 1, 0.375, 0.3, 0, 0.625, 0.7, 1);
-
-setupBlockShapeByData(ECreateTrinket.SHAFT, 3, 0, 0.3, 0.375, 1, 0.7, 0.625);
 
 Callback.addCallback("LevelDisplayed", () => {
   Block.setDestroyLevelForID(ECreateTrinket.SHAFT, EDestroyLevel.WOOD);
