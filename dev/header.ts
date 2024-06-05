@@ -88,3 +88,7 @@ const setupBlockShapeByData = (
   BlockRenderer.setCustomCollisionShape(id, data, shape);
   return BlockRenderer.setStaticICRender(id, data, model);
 };
+
+Callback.addCallback("ItemUse", (coords, item, block, isExternal, player) => {
+  Game.message(Native.Color.GREEN + IDRegistry.getNameByID(block.id) + " DATA: " + block.data)
+});

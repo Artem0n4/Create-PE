@@ -17,6 +17,12 @@ declare class BlockAnimator {
     public scale(x: number, y: number, z: number): void
     public move(x: number, y: number, z: number, sign: "-" | "+"): void
     public destroy(): void
+    /**
+     * 
+     * @model name of your model, writes from: __ dir __ + "assets/models/"
+     * @params importParams for your render mesh
+     * @rotate rotation for your RenderMesh
+     */
     public static generateMesh(
       model: string,
       params?: RenderMesh.ImportParams,
