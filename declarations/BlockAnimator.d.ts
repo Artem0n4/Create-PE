@@ -2,7 +2,7 @@
 type ArrayVector = [number, number, number];
 
 declare class BlockAnimator {
-    public animation;
+    public animation: Animation.Base;
     public coords: Vector;
     public tile: TileEntity
     constructor(coords: Vector, tile: TileEntity)

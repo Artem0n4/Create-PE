@@ -57,6 +57,6 @@ class CBlock {
           return this;
     };
     public getID(): int {
-      return ItemID[this.id];
+      return BlockID[this.id];
     }
 }
