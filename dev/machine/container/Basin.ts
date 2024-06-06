@@ -16,31 +16,34 @@ class Basin extends TileEntityBase {
     .createWithRotation()
     .setupBlockModel("basin", "basin", [1, 1, 1], [0.5, 0.5, 0.5]);
   public defaultValues = {
-    item: 0,
-    count: 0,
-    data: 0,
+    selected: 1,
   };
-  public animation: Animation.Item;
+  public animations: Animation.Item[];
   clientLoad(): void {
-    this.animation = new Animation.Item(this.x + 0.5, this.y + 0.2, this.z + 0.5);
-    this.animation.load();
-    alert("this.animation: " + this.animation)
+    this.animations = [
+      new Animation.Item(this.x + 0.5, this.y + 0.2, this.z + 0.6),
+      new Animation.Item(this.x + 0.5, this.y + 0.52, this.z + 0.4),
+    ];
+    this.animations[0].load();
+    this.animations[1].load();
   }
   clientUnload(): void {
-    this.animation && this.animation.destroy();
+    if (this.animations) {
+      this.animations[0].destroy();
+      this.animations[1].destroy();
+    }
   }
   @BlockEngine.Decorators.NetworkEvent(Side.Client)
-  describeItem(data: ItemStack) {
-    if (!this.animation) return;
-    this.animation.describeItem({
+  describeItem(data: ItemStack & { animation: Animation.Item }) {
+    if (!data.animation) return;
+    data.animation.describeItem({
       id: data.id,
       count: 1,
       data: data.data,
       size: 0.4,
       rotation: [Math.PI / 2, Math.PI / 4, 0],
     });
-    this.animation.load();
-    alert("Пакет прилетел! stack: " + data);
+    data.animation.load();
   }
   onItemUse(
     coords: Callback.ItemUseCoordinates,
@@ -49,51 +52,63 @@ class Basin extends TileEntityBase {
   ): boolean {
     const entity = new PlayerEntity(player);
     if (Entity.getSneaking(player) === true) {
+      const selected_slot = this.container.getSlot("slot_" + this.data.selected)
       if (entity.getCarriedItem().id === 0) {
-        entity.setCarriedItem(this.data as ItemInstance);
+        entity.setCarriedItem(selected_slot); 
       } else {
-        entity.addItemToInventory(this.data as ItemInstance);
+        entity.addItemToInventory(selected_slot);
+      }
+      if (this.hasSelected()) {
+        this.sendPacket("describeItem", new ItemStack());
       };
-      this.sendPacket("describeItem", new ItemStack());
+      this.container.setSlot("slot_" + this.data.selected, 0, 0, 0)
       return;
     } else {
-      this.data.id = item.id;
-      this.data.count = item.count;
-      this.data.data = item.data;
+      this.container.setSlot(
+        "slot_" + this.data.selected,
+        item.id,
+        item.count,
+        item.data,
+        item.extra
+      );
+     this.selectedLogic(player);
       entity.decreaseCarriedItem(1);
-      this.sendPacket("describeItem", item);
+      if (this.hasSelected()) {
+        this.sendPacket("describeItem", item);
+      }
       return;
     }
   }
-  selfDestroy(): void {
-    if (new ItemStack(this.data as ItemInstance).isEmpty()) return;
-    this.blockSource.spawnDroppedItem(
-      this.x + 0.5,
-      this.y + 0.3,
-      this.z + 0.5,
-      this.data.id,
-      this.data.count,
-      this.data.data
-    );
-    alert("ItemStack не пустой!)-")
-    super.selfDestroy();
-  }
-  public static getItemStack(coords: Vector): ItemStack {
-    const tile = TileEntity.getTileEntity(coords.x, coords.y, coords.z);
-    if (tile && tile.data) {
-      return new ItemStack(tile.data as ItemInstance);
-    }
-    return null;
-  }
-  public static setItemStack(coords: Vector, stack: ItemStack) {
-    const tile = TileEntity.getTileEntity(coords.x, coords.y, coords.z);
-    if (tile && tile.data) {
-      tile.data.id = stack.id;
-      tile.data.count = stack.count;
-      tile.data.data = stack.data;
+  hasSelected() {
+    return this.data.selected === 1 || this.data.selected === 2;
+  };
+  selectedLogic(player: int) {
+    if (this.data.selected < 16) {
+      this.data.selected++;
+    } else {
+      this.data.selected = 0;
     }
   };
+  selfDestroy(): void {
+    for (let i = 1; i <= 16; i++) {
+      const slots = this.container.getSlot("slot_" + i);
+      if (slots.id !== 0) {
+        this.blockSource.spawnDroppedItem(
+          this.x + 0.5,
+          this.y + 0.3,
+          this.z + 0.5,
+          slots.id,
+          slots.count,
+          slots.data,
+          slots.extra
+        );
+        this.container.setSlot("slot_" + i, 0, 0, 0);
+      }
+    }
+    super.selfDestroy();
+  }
+
   static {
-    TileEntity.registerPrototype(Shaft.BLOCK.getID(), new Shaft());
+    TileEntity.registerPrototype(Basin.BLOCK.getID(), new Basin());
   }
 }
