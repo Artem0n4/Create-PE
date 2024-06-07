@@ -21,8 +21,8 @@ class Basin extends TileEntityBase {
   public animations: Animation.Item[];
   clientLoad(): void {
     this.animations = [
-      new Animation.Item(this.x + 0.5, this.y + 0.2, this.z + 0.6),
-      new Animation.Item(this.x + 0.5, this.y + 0.52, this.z + 0.4),
+      new Animation.Item(this.x + 0.5, this.y + 1.2, this.z + 0.6),
+      new Animation.Item(this.x + 0.5, this.y + 1.3, this.z + 0.4),
     ];
     this.animations[0].load();
     this.animations[1].load();
@@ -34,16 +34,21 @@ class Basin extends TileEntityBase {
     }
   }
   @BlockEngine.Decorators.NetworkEvent(Side.Client)
-  describeItem(data: ItemStack & { animation: Animation.Item }) {
-    if (!data.animation) return;
-    data.animation.describeItem({
+  describeItem(data: ItemStack & { number: int }) {
+    const animation = this.animations[data.number];
+    if (!animation) return;
+    animation.describeItem({
       id: data.id,
       count: 1,
       data: data.data,
       size: 0.4,
       rotation: [Math.PI / 2, Math.PI / 4, 0],
     });
-    data.animation.load();
+    animation.load();
+    alert("Пакет прилетел!");
+  }
+  public sendVisual(stack: ItemStack, number: int) {
+    return this.sendPacket("describeItem", { ...stack, number });
   }
   onItemUse(
     coords: Callback.ItemUseCoordinates,
@@ -52,62 +57,54 @@ class Basin extends TileEntityBase {
   ): boolean {
     const entity = new PlayerEntity(player);
     if (Entity.getSneaking(player) === true) {
-      const selected_slot = this.container.getSlot("slot_" + this.data.selected)
-      if (entity.getCarriedItem().id === 0) {
-        entity.setCarriedItem(selected_slot); 
+      if (item.id === 0) {
+        entity.setCarriedItem(this.getSelectedSlot());
       } else {
-        entity.addItemToInventory(selected_slot);
+        entity.addItemToInventory(this.getSelectedSlot());
       }
       if (this.hasSelected()) {
-        this.sendPacket("describeItem", new ItemStack());
-      };
-      this.container.setSlot("slot_" + this.data.selected, 0, 0, 0)
+        this.sendVisual(new ItemStack(), 0);
+        this.sendVisual(new ItemStack(), 1);
+      }
+      this.setSelectedSlot(new ItemStack());
       return;
     } else {
-      this.container.setSlot(
-        "slot_" + this.data.selected,
-        item.id,
-        item.count,
-        item.data,
-        item.extra
-      );
-     this.selectedLogic(player);
-      entity.decreaseCarriedItem(1);
+      if (item.id !== 0) this.selectingLogic(player);
+      this.setSelectedSlot(item);
+      entity.decreaseCarriedItem(item.count);
       if (this.hasSelected()) {
-        this.sendPacket("describeItem", item);
+        this.sendVisual(item, 0);
+        this.sendVisual(item, 1);
       }
       return;
     }
   }
   hasSelected() {
     return this.data.selected === 1 || this.data.selected === 2;
-  };
-  selectedLogic(player: int) {
+  }
+  selectingLogic(player: int) {
     if (this.data.selected < 16) {
       this.data.selected++;
     } else {
       this.data.selected = 0;
     }
-  };
+  }
+  getSelectedSlot(): ItemInstance {
+    return this.container.getSlot("slot_" + this.data.selected);
+  }
+  setSelectedSlot(stack: ItemInstance) {
+    this.container.setSlot(
+      "slot_" + this.data.selected,
+      stack.id,
+      stack.count,
+      stack.data,
+      stack.extra
+    );
+    return;
+  }
   selfDestroy(): void {
-    for (let i = 1; i <= 16; i++) {
-      const slots = this.container.getSlot("slot_" + i);
-      if (slots.id !== 0) {
-        this.blockSource.spawnDroppedItem(
-          this.x + 0.5,
-          this.y + 0.3,
-          this.z + 0.5,
-          slots.id,
-          slots.count,
-          slots.data,
-          slots.extra
-        );
-        this.container.setSlot("slot_" + i, 0, 0, 0);
-      }
-    }
     super.selfDestroy();
   }
-
   static {
     TileEntity.registerPrototype(Basin.BLOCK.getID(), new Basin());
   }

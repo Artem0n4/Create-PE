@@ -19,7 +19,7 @@
 		"machine/source/Shaft.ts",
 		"machine/source/HandCrank.ts",
 		"machine/container/Basin.ts",
-		"train/*",
+		"train/SlidingDoor.ts",
 		"final.ts"
 	]
 }

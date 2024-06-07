@@ -19,8 +19,11 @@ class Shaft extends TileEntityBase {
       scale: [1.1, 1.1, 1.1],
       invertV: false,
       noRebuild: false,
-    });
-
+    })
+    .setShapeByData(0, 0.375, 0.3, 0, 0.625, 0.7, 1)
+    .setShapeByData(2, 0, 0.3, 0.375, 1, 0.7, 0.625)
+    .setShapeByData(1, 0.375, 0.3, 0, 0.625, 0.7, 1)
+    .setShapeByData(3, 0, 0.3, 0.375, 1, 0.7, 0.625);
   public animation: BlockAnimator;
   public defaultValues = {
     speed: 0,
@@ -43,13 +46,11 @@ class Shaft extends TileEntityBase {
     [-Math.PI / 2, 0, 0]
   );
   @BlockEngine.Decorators.NetworkEvent(Side.Client)
-  updateModel(data: { mesh: RenderMesh | RenderSide }) {
-    const animation = this.animation;
-    if (!animation) return;
+  describeModel(data: { mesh: RenderMesh | RenderSide<string> }) {
+    if (!this.animation) return;
     alert("Пакет прилетел!");
-    animation.load();
-    animation.describe(data.mesh, "block/shaft");
-    animation.load();
+    this.animation.describe(data.mesh, "block/shaft");
+    this.animation.load();
   } //!
   clientLoad(): void {
     this.animation = new BlockAnimator(
@@ -76,60 +77,30 @@ class Shaft extends TileEntityBase {
         this.blockID,
         data < 4 ? data + 1 : 0
       );
-      this.sendPacket("updateModel", {
-        mesh: Shaft.RENDER_LIST.getRenderMesh(this),
+      return this.sendPacket("describeModel", {
+        mesh: Shaft.RENDER_LIST,
       });
+      
     } else {
       this.blockSource.setBlock(this.x, this.y, this.z, this.blockID, 4);
-      this.sendPacket("updateModel", {
+      return this.sendPacket("describeModel", {
         mesh: Shaft.RENDER_TOP,
       });
     }
   }
-  public static connecting(
-    block: Tile,
-    region: BlockSource,
-    coords: Vector,
-  ) {
-    if (
-      region.getBlockId(coords.x, coords.y, coords.z) !==
-      Connection.connecting_list[IDRegistry.getNameByID(block.id)]
-    ) {
-      return;
-    }
-    const tile = TileEntity.getTileEntity(
-      coords.x,
-      coords.y,
-      coords.z
-    ) as TileEntity & { animation: BlockAnimator };
-    if (tile && tile.animation) {
-      tile.animation.rotate(0.01, 0, 0);
-    };
-    Game.message("test: " + coords)
+  public static connecting(block: Tile, region: BlockSource, coords: Vector) {
     const side_pos: Vector[] = [
       new Vector3(coords.x, coords.y - 1, coords.z),
       new Vector3(coords.x, coords.y + 1, coords.z),
       new Vector3(coords.x + 1, coords.y, coords.z),
-      new Vector3(coords.x -1, coords.y, coords.z),
+      new Vector3(coords.x - 1, coords.y, coords.z),
       new Vector3(coords.x, coords.y, coords.z + 1),
       new Vector3(coords.x, coords.y, coords.z - 1),
-    ];
-    side_pos.forEach((value: Vector) => {
-      this.connecting(block, region, value);
-    });
-  }
+    ]; //...
+  };
   static {
     const id = Shaft.BLOCK.getID();
     TileEntity.registerPrototype(id, new Shaft());
-    setupBlockShapeByData(id, 0, 0.375, 0.3, 0, 0.625, 0.7, 1);
-    setupBlockShapeByData(id, 2, 0, 0.3, 0.375, 1, 0.7, 0.625);
-    setupBlockShapeByData(id, 1, 0.375, 0.3, 0, 0.625, 0.7, 1);
-    setupBlockShapeByData(id, 3, 0, 0.3, 0.375, 1, 0.7, 0.625);
-    Connection.registerTrinket(id);
-    Block.registerClickFunctionForID(id, (coords, item, block, player) => {
-      Shaft.connecting({id, data: 0}, BlockSource.getDefaultForActor(player), coords)
-      return;
-    })
   }
 }
 
