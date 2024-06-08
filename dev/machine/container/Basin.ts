@@ -36,7 +36,6 @@ class Basin extends TileEntityBase {
   @BlockEngine.Decorators.NetworkEvent(Side.Client)
   describeItem(data: ItemStack & { number: int }) {
     const animation = this.animations[data.number];
-    if (!animation) return;
     animation.describeItem({
       id: data.id,
       count: 1,
@@ -46,9 +45,15 @@ class Basin extends TileEntityBase {
     });
     animation.load();
     alert("Пакет прилетел!");
+    return;
   }
   public sendVisual(stack: ItemStack, number: int) {
-    return this.sendPacket("describeItem", { ...stack, number });
+    return this.sendPacket("describeItem", {
+      id: stack.id,
+      count: stack.count,
+      data: stack.data,
+      number,
+    });
   }
   onItemUse(
     coords: Callback.ItemUseCoordinates,
@@ -80,6 +85,7 @@ class Basin extends TileEntityBase {
     }
   }
   hasSelected() {
+    Game.message(this.data.selected);
     return this.data.selected === 1 || this.data.selected === 2;
   }
   selectingLogic(player: int) {

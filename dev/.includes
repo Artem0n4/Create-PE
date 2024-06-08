@@ -2,7 +2,7 @@ utils/translations.ts
 header.ts
 utils/CItem.ts
 utils/CBlock.ts
-utils/BlockAnimation.ts
+decoration/Casing.ts
 machine/EnergySource.ts
 machine/KineticBase.ts
 ItemGenerator.ts

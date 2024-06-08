@@ -1,13 +1,88 @@
 class SlidingDoor extends TileEntityBase {
-  protected constructor() {
-    super();
-  }
+  protected animation: BlockAnimator;
   public static RENDER_LIST = new RenderSide<string>("block/door/door_full", {
     invertV: false,
     noRebuild: false,
     translate: [0, 0, 0],
   });
-  public static list = [];
+  protected constructor(texture: string) {
+    super();
+    this.client.load = function () {
+      const animation = (this.animation = new BlockAnimator(
+        new Vector3(this.x + 0.5, this.y + 0.5, this.z + 0.5),
+        this
+      ));
+      animation.describe(SlidingDoor.RENDER_LIST, texture);
+      animation.load();
+    };
+  }
+  clientUnload(): void {
+    this.animation && this.animation.destroy();
+  }
+  defaultValues = {
+    timer: 100,
+    active: false,
+    state: "close",
+  };
+  rotation: ArrayVector;
+  @BlockEngine.Decorators.NetworkEvent(Side.Client)
+  moveAnimation(data: Vector) {
+    if (!this.animation) return;
+    this.animation.setPos(data.x, data.y, data.z);
+  }
+  public moveLogic(pos: Vector) {
+    if (this.data.state === "open") {
+      return this.sendPacket("moveAnimation", pos);
+    } else {
+      const inversion = Object.entries(pos).reduce((acc, [key, value]) => {
+        acc[key] = -value;
+        return acc;
+      }, {});
+      return this.sendPacket("moveAnimation", inversion);
+    }
+  }
+  onTick(): void {
+    if (this.data.active === false || !this.rotation) return;
+    const xyz = ["x", "y", "z"];
+    const rotation = this.rotation.map((v, i, a) => {
+      return v === 1 ? this[xyz[i]] + 0.5 : this[xyz[i]] + (this.data.timer / v);
+    });
+    const pos = {
+      x: rotation[0],
+      y: rotation[1],
+      z: rotation[2],
+    };
+    this.moveLogic(pos);
+    this.data.timer--;
+    if (this.data.timer === 0) {
+      this.data.active = false;
+      this.data.timer = 100;
+      alert("End");
+    }
+    return;
+  }
+  onItemUse(
+    coords: Callback.ItemUseCoordinates,
+    item: ItemStack,
+    player: number
+  ): boolean {
+    const data = BlockSource.getDefaultForActor(player).getBlockData(
+      coords.x,
+      coords.y,
+      coords.z
+    );
+    const x = data === 250 || data === 3 ? 250 : 1;
+    const z = data === 250 || data === 2 ? 250 : 1;
+    this.rotation = [x, 1, z];
+
+    if (this.data.state === "close") {
+      this.data.state = "open";
+    } else {
+      this.data.state = "close";
+    }
+    this.data.active = true;
+    return;
+  }
   public static registry(keyword: string, texture: string) {
     const BLOCK = new CBlock(keyword + "_door", [
       {
@@ -23,105 +98,15 @@ class SlidingDoor extends TileEntityBase {
         inCreative: true,
       },
     ]).createWithRotation();
-    SlidingDoor.list[BLOCK.getID()] = "/block/door/" + texture;
-    TileEntity.registerPrototype(BLOCK.getID(), new SlidingDoor());
-  }
-  protected animation: BlockAnimator;
-  clientLoad(): void {
-    this.animation = new BlockAnimator(
-      new Vector3(this.x + 0.5, this.y + 0.5, this.z + 0.5),
-      this
+    TileEntity.registerPrototype(
+      BLOCK.getID(),
+      new SlidingDoor("block/door/" + texture + "_full")
     );
-    this.animation.describe(
-      SlidingDoor.RENDER_LIST,
-      SlidingDoor.list[
-        BlockSource.getCurrentWorldGenRegion().getBlockId(
-          this.x,
-          this.y,
-          this.z
-        )
-      ]
-    );
-    this.animation.load();
-  }
-  clientUnload(): void {
-    this.animation && this.animation.destroy();
-  }
-  defaultValues = {
-    timer: 320,
-    active: false,
-    state: "close",
-  };
-  rotation: ArrayVector;
-  @BlockEngine.Decorators.NetworkEvent(Side.Client)
-  moveAnimation(data: Vector) {
-    if (!this.animation) return;
-    this.animation.setPos(data.x, data.y, data.z);
-  }
-  onTick(): void {
-    if (this.data.active === false) return;
-    const timer = this.data.timer;
-    const pos = {
-      x: this.x + timer / this.rotation[0],
-      y: this.y + timer / this.rotation[1],
-      z: this.z + timer / this.rotation[2],
-    };
-    if (this.data.state === "open") {
-      this.sendPacket("moveAnimation", pos);
-    } else {
-      const keys = Object.keys(pos);
-      this.sendPacket(
-        "moveAnimation",
-        Object.values(pos).reduce((pv, cv: number, ci) => {
-          pv[keys[ci]] = cv * -1;
-          return pv;
-        }, {})
-      );
-    }
-    this.data.timer--;
-    if (this.data.timer === 0) {
-      this.data.active = false;
-      this.data.timer = 320;
-      alert("End");
-    }
-  }
-  onItemUse(
-    coords: Callback.ItemUseCoordinates,
-    item: ItemStack,
-    player: number
-  ): boolean {
-    let rotation = [0, 0, 0] as ArrayVector;
-    switch (
-      BlockSource.getDefaultForActor(player).getBlockData(
-        coords.x,
-        coords.y,
-        coords.z
-      )
-    ) {
-      case 0:
-        rotation = [20, 0, 0];
-        break;
-      case 1:
-        rotation = [0, 0, 20];
-        break;
-
-      case 2:
-        rotation = [0, 0, 20];
-        break;
-
-      case 3:
-        rotation = [20, 0, 0];
-        break;
-    }
-    this.rotation = rotation;
-    if (this.data.state === "close") {
-      this.data.state = "open";
-    } else {
-      this.data.state = "close";
-    }
-    this.data.active = true;
-    return;
   }
 }
 
-SlidingDoor.registry("brass", "brass_door_full");
+SlidingDoor.registry("brass", "brass");
+SlidingDoor.registry("andesite", "andesite");
+SlidingDoor.registry("copper", "copper");
+SlidingDoor.registry("train", "train");
+SlidingDoor.registry("framed_glass", "framed_glass");

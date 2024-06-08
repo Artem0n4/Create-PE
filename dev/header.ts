@@ -35,42 +35,8 @@ const ObjectValues = function (obj: {}) {
   });
 };
 
-enum ECreateTrinket {
-  SHAFT = BlockID["shaft"],
-  HAND_CRANK = BlockID["hand_crank"],
-}
 
-enum ETrinketRotation {
-  X = Math.PI / 2,
-  /**
-   * must use also using X
-   */
-  XY = Math.PI / 2,
-  Z = 0,
-}
 
-enum ETrinketSide {
-  FIRST = 0,
-  SECOND = 1,
-  THIRD = 2,
-  FOURTH = 3,
-}
-
-type coords_xyz = {
-  x: int,
-  y: int,
-  z: int
-};
-
-type rotation = coords_xyz;
-
-enum EDestroyLevel {
-  HAND = 0,
-  WOOD = 1,
-  STONE = 2,
-  IRON = 3,
-  DIAMOND = 4
-};
 
 // const setupBlockShapeByData = (
 //   id: int,

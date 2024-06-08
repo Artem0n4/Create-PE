@@ -51,6 +51,7 @@ class Shaft extends TileEntityBase {
     alert("Пакет прилетел!");
     this.animation.describe(data.mesh, "block/shaft");
     this.animation.load();
+    return;
   } //!
   clientLoad(): void {
     this.animation = new BlockAnimator(
@@ -86,6 +87,7 @@ class Shaft extends TileEntityBase {
       return this.sendPacket("describeModel", {
         mesh: Shaft.RENDER_TOP,
       });
+      
     }
   }
   public static connecting(block: Tile, region: BlockSource, coords: Vector) {
@@ -104,6 +106,3 @@ class Shaft extends TileEntityBase {
   }
 }
 
-Callback.addCallback("LevelDisplayed", () => {
-  Block.setDestroyLevelForID(ECreateTrinket.SHAFT, EDestroyLevel.WOOD);
-});

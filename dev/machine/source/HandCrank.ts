@@ -25,6 +25,6 @@ HAND_CRANK.setItemModel("item/hand_crank", "item/hand_crank", {
 });
 
 TileEntity.registerPrototype(
-  ECreateTrinket.HAND_CRANK,
+  HAND_CRANK.getID(),
   new HandCrank()
 );
