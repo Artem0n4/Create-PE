@@ -51,7 +51,6 @@ class Shaft extends TileEntityBase {
     alert("Пакет прилетел!");
     this.animation.describe(data.mesh, "block/shaft");
     this.animation.load();
-    return;
   } //!
   clientLoad(): void {
     this.animation = new BlockAnimator(

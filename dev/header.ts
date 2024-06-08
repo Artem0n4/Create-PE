@@ -35,7 +35,7 @@ const ObjectValues = function (obj: {}) {
   });
 };
 
-
+const pos_keys = ["x", "y", "z"]
 
 
 // const setupBlockShapeByData = (

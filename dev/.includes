@@ -1,5 +1,6 @@
 utils/translations.ts
 header.ts
+item/Glue.ts
 utils/CItem.ts
 utils/CBlock.ts
 decoration/Casing.ts

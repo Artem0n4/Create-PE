@@ -20,43 +20,51 @@ class SlidingDoor extends TileEntityBase {
     this.animation && this.animation.destroy();
   }
   defaultValues = {
-    timer: 100,
+    timer: 200,
     active: false,
     state: "close",
   };
   rotation: ArrayVector;
   @BlockEngine.Decorators.NetworkEvent(Side.Client)
-  moveAnimation(data: Vector) {
+  moveAnimation(data: Vector & { rotation: ArrayVector; timer: int }) {
     if (!this.animation) return;
-    this.animation.setPos(data.x, data.y, data.z);
+    const rotation = data.rotation.map((v, i) =>
+      data.rotation[i].toString().includes("1")
+        ? 0.5
+        : data.timer / data.rotation[i]
+    );
+    this.animation.setPos(
+      data.x + rotation[0],
+      data.y + rotation[1],
+      data.z + rotation[2]
+    );
   }
-  public moveLogic(pos: Vector) {
+  public moveLogic() {
     if (this.data.state === "open") {
-      return this.sendPacket("moveAnimation", pos);
+      return this.sendPacket("moveAnimation", {
+        x: this.x,
+        y: this.y,
+        z: this.z,
+        rotation: this.rotation,
+        timer: this.data.timer,
+      });
     } else {
-      const inversion = Object.entries(pos).reduce((acc, [key, value]) => {
-        acc[key] = -value;
-        return acc;
-      }, {});
-      return this.sendPacket("moveAnimation", inversion);
+      return this.sendPacket("moveAnimation", {
+        x: this.x,
+        y: this.y,
+        z: this.z,
+        rotation: this.rotation.map((v) => v * -1),
+        timer: this.data.timer,
+      });
     }
   }
   onTick(): void {
     if (this.data.active === false || !this.rotation) return;
-    const xyz = ["x", "y", "z"];
-    const rotation = this.rotation.map((v, i, a) => {
-      return v === 1 ? this[xyz[i]] + 0.5 : this[xyz[i]] + (this.data.timer / v);
-    });
-    const pos = {
-      x: rotation[0],
-      y: rotation[1],
-      z: rotation[2],
-    };
-    this.moveLogic(pos);
+    this.moveLogic();
     this.data.timer--;
     if (this.data.timer === 0) {
       this.data.active = false;
-      this.data.timer = 100;
+      this.data.timer = 200;
       alert("End");
     }
     return;
@@ -71,10 +79,9 @@ class SlidingDoor extends TileEntityBase {
       coords.y,
       coords.z
     );
-    const x = data === 250 || data === 3 ? 250 : 1;
-    const z = data === 250 || data === 2 ? 250 : 1;
+    const x = data === 0 || data === 2 ? 250 : 1;
+    const z = data === 1 || data === 3 ? 250 : 1;
     this.rotation = [x, 1, z];
-
     if (this.data.state === "close") {
       this.data.state = "open";
     } else {
@@ -110,3 +117,4 @@ SlidingDoor.registry("andesite", "andesite");
 SlidingDoor.registry("copper", "copper");
 SlidingDoor.registry("train", "train");
 SlidingDoor.registry("framed_glass", "framed_glass");
+
