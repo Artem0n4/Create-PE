@@ -49,9 +49,18 @@ class Shaft extends TileEntityBase {
   describeModel(data: { mesh: RenderMesh | RenderSide<string> }) {
     if (!this.animation) return;
     alert("Пакет прилетел!");
+    this.animation.destroy();
     this.animation.describe(data.mesh, "block/shaft");
     this.animation.load();
   } //!
+  @BlockEngine.Decorators.NetworkEvent(Side.Client)
+  rotateModel(data: Vector) {
+    if(!this.animation) return;
+    this.animation.rotate(data.x, data.y, data.z);
+  };
+  onTick(): void {
+    this.sendPacket("rotateModel", new Vector3(this.x + 0.05, this.y, this.z));
+  }
   clientLoad(): void {
     this.animation = new BlockAnimator(
       new Vector3(this.x + 0.5, this.y + 0.5, this.z + 0.5),
@@ -88,6 +97,14 @@ class Shaft extends TileEntityBase {
       });
       
     }
+  };
+  public static replay(coords: Vector, block: Tile, changedCoords: Vector, region: BlockSource) {
+    if(region.getBlockId(changedCoords.x, changedCoords.y, changedCoords.z) === Shaft.BLOCK.getID()) {
+      const tile = TileEntity.getTileEntity(changedCoords.x, changedCoords.y, changedCoords.z);
+      if(!tile.animation) return;
+      tile.animation.destroy();
+      tile.animation.load();
+    }
   }
   public static connecting(block: Tile, region: BlockSource, coords: Vector) {
     const side_pos: Vector[] = [
@@ -102,6 +119,7 @@ class Shaft extends TileEntityBase {
   static {
     const id = Shaft.BLOCK.getID();
     TileEntity.registerPrototype(id, new Shaft());
+    Block.registerNeighbourChangeFunction(id, Shaft.replay)
   }
 }
 

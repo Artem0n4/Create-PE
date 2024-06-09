@@ -1,5 +1,5 @@
 type casing = "andesite" | "brass" | "copper" | "railway"; 
-// | "creative" | "refined_radiance" | "shadow_steel"; it is secret
+//"creative" | "refined_radiance" | "shadow_steel"; it is secret
 class Casing extends CBlock {
   public static readonly RAILWAY = new Casing("railway");
   public static readonly BRASS = new Casing("brass");

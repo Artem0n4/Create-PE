@@ -16,6 +16,7 @@
 		"ItemGenerator.ts",
 		"Wrench.ts",
 		"utils/LiquidFactory.ts",
+		"utils/Filter.ts",
 		"machine/source/Connection.ts",
 		"machine/source/Shaft.ts",
 		"machine/source/HandCrank.ts",
