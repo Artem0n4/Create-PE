@@ -4,8 +4,8 @@ item/Glue.ts
 utils/CItem.ts
 utils/CBlock.ts
 decoration/Casing.ts
-machine/EnergySource.ts
-machine/KineticBase.ts
+machine/processing/ProcessFactory.ts
+machine/processing/ProcessingTile.ts
 ItemGenerator.ts
 Wrench.ts
 utils/LiquidFactory.ts

@@ -34,9 +34,9 @@ abstract class Glue {
         );
       }
       const animation = new Animation.Base(
-        list[0].x + 0.5,
-        list[0].y + 0.5,
-        list[0].z + 0.5
+        list[0].x,
+        list[0].y,
+        list[0].z
       );
       animation.describe({ mesh, skin: "atlas::terrain" });
       animation.load();
