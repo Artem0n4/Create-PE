@@ -1,25 +1,24 @@
-abstract class ProcessingTile<T extends IRecipeForm> extends TileEntityBase {
+type ProcessTileData = {power: int, lock: boolean, progress: int, progressMax: int};
+abstract class ProcessingTile extends TileEntityBase {
+  constructor(min: int = 50, max: int = 250) {
+    super();
+    Connection.registerTo(this.blockID, min, max);
+  }
+  public animation: BlockAnimator;
   public static list: int[];
    public static BLOCK: CBlock;
-   public static factory: ProcessFactory<T>;
+   public static factory: ProcessFactory<IRecipeForm>;
   public defaultValues = {
     power: 0,
     lock: true,
     progress: 0,
     progressMax: 250,
   };
-  public static transfer(coords: Vector, region: BlockSource, power: int) {
-    const block = region.getBlockId(coords.x, coords.y, coords.z);
-    if (ProcessingTile.list.includes(block) === false) return;
+  data: ProcessTileData;
+  public static transfer(coords: Vector, power: int) {
     const tile = TileEntity.getTileEntity(coords.x, coords.y, coords.z);
     if (!tile) return;
-    tile.data.en = power;
+    tile.data.power = power;
   }
-  public onTick() {
-    if (this.data.power > 0) {
-     return ProcessingTile.factory.releaseRecipe(
-        this.data as { progress: number; progressMax: number; lock: boolean }
-      );
-    }
-  };
+ abstract onTick(): void;
 }

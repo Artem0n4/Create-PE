@@ -6,7 +6,7 @@ interface IConnectedTrinket {
 
 abstract class Connection {
     protected constructor() {};
-    protected static connecting_list: Record<int, IConnectedTrinket> = {};
+    public static connecting_list: Record<int, IConnectedTrinket> = {};
     public static registerTo(trinket: int, min: int, max: int, source = false) {
         this.connecting_list[trinket] = {min, max, source} satisfies IConnectedTrinket;
     };
@@ -21,5 +21,8 @@ abstract class Connection {
             max: trink.max
         }
     };
+    public static getInputer(trinket: int) {
+          return Connection?.connecting_list[trinket]?.source === false
+    }
     
 }

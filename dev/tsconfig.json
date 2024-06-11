@@ -6,6 +6,7 @@
 	"exclude": [],
 	"include": [
 		"utils/translations.ts",
+		"utils/ContainerUtils.ts",
 		"header.ts",
 		"item/Glue.ts",
 		"utils/CItem.ts",
@@ -13,6 +14,7 @@
 		"decoration/Casing.ts",
 		"machine/processing/ProcessFactory.ts",
 		"machine/processing/ProcessingTile.ts",
+		"machine/processing/Mixer.ts",
 		"ItemGenerator.ts",
 		"Wrench.ts",
 		"utils/LiquidFactory.ts",
